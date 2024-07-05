@@ -12,6 +12,8 @@ import Input from '../../atoms/input/Input';
 
 import { confirmDialog } from '../../molecules/confirm-dialog/ConfirmDialog';
 
+const enableAccountCustomization = __ENV_APP__.ENABLE_ACCOUNT_CUSTOMIZATION === 'true';
+
 function ProfileEditor({ userId = null }) {
   // Values
   const [isEditing, setIsEditing] = useState(false);
@@ -108,12 +110,14 @@ function ProfileEditor({ userId = null }) {
     <div className="profile-editor__info" style={{ marginBottom: avatarSrc ? '24px' : '0' }}>
       <div>
         <div className="h5 emoji-size-fix">{twemojifyReact(username) ?? userId}</div>
-        <IconButton
-          fa="fa-solid fa-pencil"
-          size="extra-small"
-          tooltip="Edit"
-          onClick={() => setIsEditing(true)}
-        />
+        {enableAccountCustomization && (
+          <IconButton
+            fa="fa-solid fa-pencil"
+            size="extra-small"
+            tooltip="Edit"
+            onClick={() => setIsEditing(true)}
+          />
+        )}
       </div>
       <div className="small">{mx.getUserId()}</div>
     </div>

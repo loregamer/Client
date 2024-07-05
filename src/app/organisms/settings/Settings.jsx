@@ -29,6 +29,7 @@ import Web3Section from './pages/Web3';
 import LibreTranslateSection from './pages/LibreTranslate';
 
 const voiceChatEnabled = __ENV_APP__.ENABLE_VOICE_CHAT;
+const enableAccountCustomization = __ENV_APP__.ENABLE_ACCOUNT_CUSTOMIZATION === 'true';
 
 function EmojiSection() {
   return (
@@ -70,13 +71,15 @@ const buildTabItems = () => {
       render: () => <ProfileSection />,
     });
 
-    tabItems.push({
-      text: tabText.ACCOUNT,
-      key: 'account',
-      faSrc: 'fa-solid fa-user',
-      disabled: false,
-      render: () => <AccountSection />,
-    });
+    if (enableAccountCustomization) {
+      tabItems.push({
+        text: tabText.ACCOUNT,
+        key: 'account',
+        faSrc: 'fa-solid fa-user',
+        disabled: false,
+        render: () => <AccountSection />,
+      });
+    }
 
     tabItems.push({
       text: tabText.APPEARANCE,
