@@ -1,5 +1,7 @@
 // https://github.com/cloudrac3r/cadencegq/blob/master/pug/mxid.pug
 
+import { getUserColor } from './matrixUtil';
+
 export function hashCode(str) {
   let hash = 0;
   if (str.length === 0) {
@@ -21,7 +23,7 @@ export function cssColorMXID(userId) {
 }
 
 export function colorMXID(userId) {
-  return `var(${cssColorMXID(userId)})`;
+  return getUserColor(userId);
 }
 
 export function cssBackgroundColorMXID(userId) {

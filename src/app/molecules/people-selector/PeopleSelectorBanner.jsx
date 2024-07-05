@@ -22,6 +22,7 @@ import matrixAppearance, {
   getAppearance,
   getAnimatedImageUrl,
 } from '../../../util/libs/appearance';
+import { getUserColor, getUserIcon } from '../../../util/matrixUtil';
 
 const timezoneAutoUpdate = { text: null, html: null, value: null };
 setInterval(() => {
@@ -56,7 +57,7 @@ function PeopleSelectorBanner({ name, color, user = null, roomId }) {
   const noteRef = useRef(null);
 
   const [avatarUrl, setUserAvatar] = useState(
-    user ? user?.avatarUrl || defaultAvatar(colorMXID(user.userId)) : null,
+    user ? getUserIcon(user.userId) || defaultAvatar(getUserColor(user.userId)) : null,
   );
 
   const mx = initMatrix.matrixClient;
@@ -306,16 +307,16 @@ function PeopleSelectorBanner({ name, color, user = null, roomId }) {
           <Avatar
             className="profile-image-container"
             ref={profileAvatar}
-            imageSrc={mx.mxcUrlToHttp(avatarUrl, 100, 100, 'crop')}
+            imageSrc={getUserIcon(user.userId) || mx.mxcUrlToHttp(avatarUrl, 100, 100, 'crop')}
             imageAnimSrc={
               !appearanceSettings.enableAnimParams
                 ? mx.mxcUrlToHttp(avatarUrl)
                 : getAnimatedImageUrl(mx.mxcUrlToHttp(avatarUrl, 100, 100, 'crop'))
             }
             text={name}
-            bgColor={color}
+            bgColor={getUserColor(user.userId)}
             size="large"
-            isDefaultImage
+            isDefaultImage={!getUserIcon(user.userId)}
           />
           <i
             ref={statusRef}

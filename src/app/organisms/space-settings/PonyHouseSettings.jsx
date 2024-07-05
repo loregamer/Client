@@ -11,7 +11,7 @@ import SettingTile from '../../molecules/setting-tile/SettingTile';
 import initMatrix from '../../../client/initMatrix';
 
 import { confirmDialog } from '../../molecules/confirm-dialog/ConfirmDialog';
-import { getCurrentState } from '../../../util/matrixUtil';
+import { getCurrentState, getUserColor } from '../../../util/matrixUtil';
 import { handleBannerUpload } from './handleBannerUpload';
 
 function PonyHouseSettings({ roomId, room }) {
@@ -19,7 +19,7 @@ function PonyHouseSettings({ roomId, room }) {
   const userId = mx.getUserId();
   const roomName = room?.name;
   const [isRoomIconsVisible, setRoomIconsVisible] = useState(false);
-  const color = colorMXID(initMatrix.matrixClient.getUserId());
+  const color = getUserColor(initMatrix.matrixClient.getUserId());
 
   const toggleShowRoomIcons = async (data) => {
     await mx.sendStateEvent(roomId, 'pony.house.settings', { isActive: data }, 'roomIcons');

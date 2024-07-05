@@ -17,6 +17,7 @@ import { toast } from '../../../../util/tools';
 import { getStatusCSS } from '../../../../util/onlineStatus';
 import { confirmDialog } from '../../../molecules/confirm-dialog/ConfirmDialog';
 import { colorMXID } from '@src/util/colorMXID';
+import { getUserColor } from '@src/util/matrixUtil';
 
 function ProfileSection() {
   const userProfile =
@@ -27,7 +28,7 @@ function ProfileSection() {
   const pronounsRef = useRef(null);
   const timezoneRef = useRef(null);
 
-  const color = colorMXID(initMatrix.matrixClient.getUserId());
+  const color = getUserColor(initMatrix.matrixClient.getUserId());
 
   const [customStatusIcon, setcustomStatusIcon] = useState(
     typeof userProfile.msgIcon === 'string'

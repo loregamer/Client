@@ -23,6 +23,7 @@ import { getUserWeb3Account } from '../../../util/web3';
 import { getSound } from '../../../client/state/Notifications';
 
 import { getAppearance, getAnimatedImageUrl } from '../../../util/libs/appearance';
+import { getUserColor, getUserIcon } from '../../../util/matrixUtil';
 
 // Account Status
 const accountStatus = { status: null, data: null };
@@ -255,7 +256,7 @@ function ProfileAvatarMenu() {
               <Avatar
                 className="d-inline-block float-start profile-image-container"
                 text={profile.displayName}
-                bgColor={colorMXID(mx.getUserId())}
+                bgColor={getUserColor(mx.getUserId())}
                 size="normal"
                 imageAnimSrc={
                   profile.avatarUrl !== null
