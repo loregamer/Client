@@ -1,0 +1,12 @@
+{
+  "users": {
+    "@rusty_shackleford:rpghq.org": {
+      "chatColor": "#ff6e6e",
+      "profilePicture": "https://rpghq.org/forums/download/file.php?avatar=58.png"
+    },
+    "@loregamer:rpghq.org": {
+      "chatColor": "#D02D2A",
+      "profilePicture": "@loregamer:rpghq.org"
+    }
+  }
+}
