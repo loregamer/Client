@@ -66,8 +66,13 @@ export function getUsername(userId) {
   return username;
 }
 
-export function getUsernameOfRoomMember(roomMember) {
-  return roomMember.name || roomMember.userId;
+export function getUsernameOfRoomMember(member) {
+  if (!member) return 'Unknown';
+  const name = member.name || member.userId;
+  if (member.userId.includes('irc_') && !name.includes('[irc]')) {
+    return `${name} [irc]`;
+  }
+  return name;
 }
 
 export async function isRoomAliasAvailable(alias) {
