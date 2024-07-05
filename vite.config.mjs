@@ -24,13 +24,22 @@ if (!fs.existsSync(soundsFolder)) {
   fs.mkdirSync(soundsFolder);
 }
 
-fs.copyFileSync(path.join(__dirname, './public/sound/notification.ogg'), path.join(soundsFolder, './notification.ogg'));
-fs.copyFileSync(path.join(__dirname, './public/sound/invite.ogg'), path.join(soundsFolder, './invite.ogg'));
-fse.copySync(path.join(__dirname, './vendor/twemoji/assets'), path.join(__dirname, './public/img/twemoji'), { overwrite: true });
+fs.copyFileSync(
+  path.join(__dirname, './public/sound/notification.ogg'),
+  path.join(soundsFolder, './notification.ogg'),
+);
+fs.copyFileSync(
+  path.join(__dirname, './public/sound/invite.ogg'),
+  path.join(soundsFolder, './invite.ogg'),
+);
+fse.copySync(
+  path.join(__dirname, './vendor/twemoji/assets'),
+  path.join(__dirname, './public/img/twemoji'),
+  { overwrite: true },
+);
 
 const copyFiles = {
   targets: [
-
     {
       src: 'node_modules/bootstrap-icons/icons/play-circle-fill.svg',
       dest: 'img/svg/',
@@ -75,16 +84,14 @@ const copyFiles = {
       src: 'README.md',
       dest: '',
     },
-
   ],
-}
+};
 
 export default defineConfig(({ command, mode }) => {
-
   fs.rmSync('dist-electron', { recursive: true, force: true });
 
-  const isServe = command === 'serve'
-  const isBuild = command === 'build'
+  const isServe = command === 'serve';
+  const isBuild = command === 'build';
   const sourcemap = isServe || !!process.env.VSCODE_DEBUG;
 
   // Load env file based on `mode` in the current working directory.
@@ -96,13 +103,11 @@ export default defineConfig(({ command, mode }) => {
   console.log(`[vite-config] [source-map] ${sourcemap}`);
 
   const env = loadEnv(mode, process.cwd(), '');
-  const electronMode = (String(env.ELECTRON_MODE) === 'true' || process?.versions.electron);
+  const electronMode = String(env.ELECTRON_MODE) === 'true' || process?.versions.electron;
   console.log(`[vite-config] [electron] ${electronMode}`);
-  const addBooleanToEnv = (valueName) =>
-    !!(env[valueName] === true || env[valueName] === 'true');
+  const addBooleanToEnv = (valueName) => !!(env[valueName] === true || env[valueName] === 'true');
 
   const envData = {
-
     MODE: mode,
     COMMAND: command,
     ELECTRON_MODE: electronMode,
@@ -110,20 +115,16 @@ export default defineConfig(({ command, mode }) => {
     DEPS: pkg.dependencies,
     PLATFORM: process.platform,
     CUSTOM_DNS: {
-
       ENABLED: addBooleanToEnv('CUSTOM_DNS'),
       PORT: Number(env.CUSTOM_DNS_PORT),
 
       BLOCKCHAIN: {
-
         ud: {
           polygon: env.UD_POLYGON_DNS,
         },
 
         ens: env.ETHEREUM_DNS,
-
       },
-
     },
 
     INFO: {
@@ -132,18 +133,19 @@ export default defineConfig(({ command, mode }) => {
       keywords: pkg.keywords,
       author: pkg.author,
       license: pkg.license,
-      welcome: String(env.APP_WELCOME)
+      welcome: String(env.APP_WELCOME),
     },
 
     CONSOLE: {
       OPEN_WARNING: [
         `%cThis is a developer console! Putting weird things can result in theft of accounts or crashing your machine! Do not trust strange people asking you to paste things here!\n\nIf you are sending an error report to some developer, make sure that you are sending the data in a private chat. This data can be used to track which rooms/spaces/users you are interacting with.\n\n\nIf you are using crypto/web3 in your client, READ THIS WARNING 10000x BEFORE YOU'RE DOING SILLY STUFF HERE! YOU'RE RESPONSIBLE FOR YOUR OWN CUSTODY WALLET!`,
         'color:red; font-size: 12pt; font-weight: 700;',
-      ]
+      ],
     },
 
     WEB3: addBooleanToEnv('WEB3'),
     IPFS: addBooleanToEnv('IPFS'),
+    ENABLE_VOICE_CHAT: addBooleanToEnv('ENABLE_VOICE_CHAT'),
 
     PAG_LIMIT: Number(env.PAG_LIMIT),
 
@@ -171,16 +173,20 @@ export default defineConfig(({ command, mode }) => {
     MAX_LISTENERS: Number(env.MAX_LISTENERS),
 
     LIBRE_TRANSLATE: {
-      DEFAULT_HOST: typeof env.LIBRE_TRANSLATE_DEFAULT_HOST === 'string' && env.LIBRE_TRANSLATE_DEFAULT_HOST.length > 0 ?
-        env.LIBRE_TRANSLATE_DEFAULT_HOST : '',
-      API_KEY: typeof env.LIBRE_TRANSLATE_API_KEY === 'string' && env.LIBRE_TRANSLATE_API_KEY.length > 0 ?
-        env.LIBRE_TRANSLATE_API_KEY : '',
+      DEFAULT_HOST:
+        typeof env.LIBRE_TRANSLATE_DEFAULT_HOST === 'string' &&
+        env.LIBRE_TRANSLATE_DEFAULT_HOST.length > 0
+          ? env.LIBRE_TRANSLATE_DEFAULT_HOST
+          : '',
+      API_KEY:
+        typeof env.LIBRE_TRANSLATE_API_KEY === 'string' && env.LIBRE_TRANSLATE_API_KEY.length > 0
+          ? env.LIBRE_TRANSLATE_API_KEY
+          : '',
       ENABLED: addBooleanToEnv('LIBRE_TRANSLATE_ENABLED'),
     },
 
     EMOJIBOARD: {
       ROW_LIMIT: {
-
         EMOJI: {
           FAV: Number(env.FAV_EMOJI_ROWS_LIMIT),
           RECENT: Number(env.RECENT_EMOJI_ROWS_LIMIT),
@@ -189,9 +195,8 @@ export default defineConfig(({ command, mode }) => {
         STICKER: {
           FAV: Number(env.FAV_STICKER_ROWS_LIMIT),
           RECENT: Number(env.RECENT_STICKER_ROWS_LIMIT),
-        }
-
-      }
+        },
+      },
     },
 
     ACCOUNT_MANAGER: {
@@ -201,7 +206,7 @@ export default defineConfig(({ command, mode }) => {
         DEACTIVATE_ACCOUNT: addBooleanToEnv('DEACTIVATE_ACCOUNT_SUPPORT'),
         ERASE_ACCOUNT: addBooleanToEnv('ERASE_ACCOUNT_SUPPORT'),
         OTHER_AUTH_LIST: addBooleanToEnv('OTHER_AUTH_LIST_SUPPORT'),
-      }
+      },
     },
 
     LOGIN: {
@@ -209,7 +214,6 @@ export default defineConfig(({ command, mode }) => {
       ALLOW_CUSTOM_HOMESERVERS: addBooleanToEnv('ALLOW_CUSTOM_HOMESERVERS'),
       HOMESERVER_LIST: [],
     },
-
   };
 
   let HOMESERVER_LIST = 0;
@@ -220,7 +224,6 @@ export default defineConfig(({ command, mode }) => {
 
   // Result object
   const result = {
-
     publicDir: true,
 
     define: {
@@ -233,7 +236,7 @@ export default defineConfig(({ command, mode }) => {
       },
       watch: {
         ignored: [
-          "**/vendor/**",
+          '**/vendor/**',
           '**/release/**',
           '**/.flatpak/**',
           '**/.github/**',
@@ -245,18 +248,13 @@ export default defineConfig(({ command, mode }) => {
       host: true,
     },
 
-    plugins: [
-      viteStaticCopy(copyFiles),
-      wasm(),
-      react(),
-    ],
+    plugins: [viteStaticCopy(copyFiles), wasm(), react()],
 
     optimizeDeps: {
       exclude: ['rust-crypto', 'vite'],
       esbuildOptions: {
-
         define: {
-          global: 'globalThis'
+          global: 'globalThis',
         },
 
         plugins: [
@@ -265,100 +263,93 @@ export default defineConfig(({ command, mode }) => {
             process: false,
             buffer: true,
           }),
-        ]
-
-      }
+        ],
+      },
     },
 
-    resolve: { alias: {}, },
-
+    resolve: { alias: {} },
   };
 
   result.resolve.alias['@src'] = path.join(__dirname, 'src');
   result.resolve.alias['@mods'] = path.join(__dirname, 'mods');
 
   const rollupOptions = {
-    plugins: [
-      inject({ Buffer: ['buffer', 'Buffer'] })
-    ],
+    plugins: [inject({ Buffer: ['buffer', 'Buffer'] })],
   };
 
   // Electron Mode
   if (electronMode) {
-
     // Extensions
     const extensions = [
-
       // Frame Wallet
       // { dist: path.join(__dirname, './electron/extensions/frame/dist'), path: 'frame' }
-
     ];
 
     for (const item in extensions) {
-      fse.copySync(extensions[item].dist, path.join(__dirname, `./dist-electron/extensions/${extensions[item].path}`), { overwrite: true });
+      fse.copySync(
+        extensions[item].dist,
+        path.join(__dirname, `./dist-electron/extensions/${extensions[item].path}`),
+        { overwrite: true },
+      );
     }
 
     result.clearScreen = false;
     rollupOptions.external = Object.keys('dependencies' in pkg ? pkg.dependencies : {});
 
-    result.plugins.push(electron([
+    result.plugins.push(
+      electron([
+        {
+          // Main-Process entry file of the Electron App.
+          entry: 'electron/main/index.ts',
 
-      {
+          onstart(options) {
+            if (process.env.VSCODE_DEBUG) {
+              console.log(
+                /* For `.vscode/.debug.script.mjs` */ '[startup] [vscode] Debug electron app',
+              );
+            } else {
+              options.startup();
+            }
+          },
 
-        // Main-Process entry file of the Electron App.
-        entry: 'electron/main/index.ts',
-
-        onstart(options) {
-          if (process.env.VSCODE_DEBUG) {
-            console.log(/* For `.vscode/.debug.script.mjs` */'[startup] [vscode] Debug electron app')
-          } else {
-            options.startup()
-          }
-        },
-
-        vite: {
-          define: result.define,
-          resolve: result.resolve,
-          build: {
-            sourcemap,
-            minify: isBuild,
-            outDir: 'dist-electron/main',
-            rollupOptions,
+          vite: {
+            define: result.define,
+            resolve: result.resolve,
+            build: {
+              sourcemap,
+              minify: isBuild,
+              outDir: 'dist-electron/main',
+              rollupOptions,
+            },
           },
         },
 
-      },
+        {
+          entry: 'electron/preload/index.ts',
 
-      {
+          onstart(options) {
+            // Notify the Renderer-Process to reload the page when the Preload-Scripts build is complete,
+            // instead of restarting the entire Electron App.
+            options.reload();
+          },
 
-        entry: 'electron/preload/index.ts',
-
-        onstart(options) {
-          // Notify the Renderer-Process to reload the page when the Preload-Scripts build is complete, 
-          // instead of restarting the entire Electron App.
-          options.reload()
-        },
-
-        vite: {
-          define: result.define,
-          resolve: result.resolve,
-          build: {
-            sourcemap: sourcemap ? 'inline' : undefined, // #332
-            minify: isBuild,
-            outDir: 'dist-electron/preload',
-            rollupOptions,
+          vite: {
+            define: result.define,
+            resolve: result.resolve,
+            build: {
+              sourcemap: sourcemap ? 'inline' : undefined, // #332
+              minify: isBuild,
+              outDir: 'dist-electron/preload',
+              rollupOptions,
+            },
           },
         },
-
-      }
-
-    ]));
-
+      ]),
+    );
   }
 
   // Normal
   else {
-
     result.appType = 'spa';
     result.base = '';
 
@@ -366,12 +357,10 @@ export default defineConfig(({ command, mode }) => {
       outDir: 'dist',
       sourcemap: true,
       copyPublicDir: true,
-      rollupOptions
+      rollupOptions,
     };
-
   }
 
   // Complete
   return result;
-
 });

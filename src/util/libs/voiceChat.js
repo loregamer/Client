@@ -16,6 +16,12 @@ class MatrixVoiceChat {
   constructor(mx) {
     // Prepare Class
     this.mx = mx;
+    this.enabled = __ENV_APP__.ENABLE_VOICE_CHAT;
+
+    if (!this.enabled) {
+      console.log('Voice chat is disabled');
+      return;
+    }
 
     this.call = null;
     this.roomId = null;

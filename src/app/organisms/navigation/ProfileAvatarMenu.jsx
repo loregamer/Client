@@ -40,6 +40,8 @@ export function getAccountStatus(where) {
 
 // Profile Avatar Menu
 function ProfileAvatarMenu() {
+  const [voiceChatEnabled] = useState(__ENV_APP__.ENABLE_VOICE_CHAT);
+
   // Data
   const mx = initMatrix.matrixClient;
   const voiceChat = initMatrix.voiceChat;
@@ -244,9 +246,9 @@ function ProfileAvatarMenu() {
     <table className="table table-borderless align-middle m-0" id="user-menu">
       <tbody>
         <tr>
-          <td className="sidebar-photo p-0">
+          <td className={`sidebar-photo p-0 ${!voiceChatEnabled ? 'w-100' : ''}`}>
             <button
-              className="btn btn-bg btn-link btn-sm ms-1 text-truncate text-start "
+              className={`btn btn-bg btn-link btn-sm ms-1 text-truncate text-start ${!voiceChatEnabled ? 'w-100' : ''}`}
               onClick={() => openSettings(settingTabText.PROFILE)}
               type="button"
             >
@@ -286,27 +288,31 @@ function ProfileAvatarMenu() {
             </button>
           </td>
 
-          <td className="p-0 pe-1 py-1 text-end">
-            <IconButton
-              tooltip={<span>{microphoneMuted ? 'Unmute' : 'Mute'}</span>}
-              tooltipPlacement="top"
-              fa="fa-solid fa-microphone"
-              className={`action-button${microphoneMuted ? ' muted' : ''}`}
-              onClick={() => voiceChat.setMicrophoneMute(!microphoneMuted)}
-            />
-            {microphoneMuted ? <i className="fa-solid fa-slash tiny-block" /> : null}
-          </td>
+          {voiceChatEnabled && (
+            <>
+              <td className="p-0 pe-1 py-1 text-end">
+                <IconButton
+                  tooltip={<span>{microphoneMuted ? 'Unmute' : 'Mute'}</span>}
+                  tooltipPlacement="top"
+                  fa="fa-solid fa-microphone"
+                  className={`action-button${microphoneMuted ? ' muted' : ''}`}
+                  onClick={() => voiceChat.setMicrophoneMute(!microphoneMuted)}
+                />
+                {microphoneMuted ? <i className="fa-solid fa-slash tiny-block" /> : null}
+              </td>
 
-          <td className="p-0 pe-1 py-1 text-end">
-            <IconButton
-              tooltip={<span>{audioMuted ? 'Undeafen' : 'Deafen'}</span>}
-              tooltipPlacement="top"
-              fa="bi bi-headphones"
-              className={`action-button-2${audioMuted ? ' muted' : ''}`}
-              onClick={() => voiceChat.setAudioMute(!audioMuted)}
-            />
-            {audioMuted ? <i className="fa-solid fa-slash tiny-block-2" /> : null}
-          </td>
+              <td className="p-0 pe-1 py-1 text-end">
+                <IconButton
+                  tooltip={<span>{audioMuted ? 'Undeafen' : 'Deafen'}</span>}
+                  tooltipPlacement="top"
+                  fa="bi bi-headphones"
+                  className={`action-button-2${audioMuted ? ' muted' : ''}`}
+                  onClick={() => voiceChat.setAudioMute(!audioMuted)}
+                />
+                {audioMuted ? <i className="fa-solid fa-slash tiny-block-2" /> : null}
+              </td>
+            </>
+          )}
 
           <td className="p-0 pe-1 py-1 text-end">
             <IconButton

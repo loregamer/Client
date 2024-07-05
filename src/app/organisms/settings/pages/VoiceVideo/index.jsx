@@ -96,6 +96,12 @@ const stopWebcamTest = () =>
   });
 
 function VoiceVideoSection() {
+  const voiceChatEnabled = __ENV_APP__.ENABLE_VOICE_CHAT;
+
+  if (!voiceChatEnabled) {
+    return null;
+  }
+
   // Prepare React
   const audioMediaSettings = toggleActionLocal('ponyHouse-usermedia')();
   const [devicesItem, setDevicesItem] = useState(null);
@@ -272,17 +278,17 @@ function VoiceVideoSection() {
 
     const updateTinyVolume =
       (target, where, updateVolume = false, forceUpdate = false) =>
-      () => {
-        const oldValue = global.localStorage.getItem(where);
-        const newValue = target.val();
+        () => {
+          const oldValue = global.localStorage.getItem(where);
+          const newValue = target.val();
 
-        if (oldValue !== newValue) global.localStorage.setItem(where, newValue);
-        if (updateVolume && microphone) microphone.setVolume(newValue);
+          if (oldValue !== newValue) global.localStorage.setItem(where, newValue);
+          if (updateVolume && microphone) microphone.setVolume(newValue);
 
-        if (testingMicro && microphone && forceUpdate) {
-          tinyTestMicro(true);
-        }
-      };
+          if (testingMicro && microphone && forceUpdate) {
+            tinyTestMicro(true);
+          }
+        };
 
     audioVolume.val(tinyAudioVolume);
     speakerVolume.val(tinySpeakerVolume);
@@ -371,13 +377,13 @@ function VoiceVideoSection() {
                   <option>Choose...</option>
                   {devicesItem && Array.isArray(devicesItem.audio) && devicesItem.audio.length > 0
                     ? devicesItem.audio.map((item) => (
-                        <option
-                          key={`voiceVideoSection_input_audio_${item.deviceId}`}
-                          value={item.deviceId}
-                        >
-                          {item.label}
-                        </option>
-                      ))
+                      <option
+                        key={`voiceVideoSection_input_audio_${item.deviceId}`}
+                        value={item.deviceId}
+                      >
+                        {item.label}
+                      </option>
+                    ))
                     : null}
                 </select>
               </div>
@@ -387,16 +393,16 @@ function VoiceVideoSection() {
                 <select ref={speakerSelectRef} className="form-select form-control-bg">
                   <option>Choose...</option>
                   {devicesItem &&
-                  Array.isArray(devicesItem.speaker) &&
-                  devicesItem.speaker.length > 0
+                    Array.isArray(devicesItem.speaker) &&
+                    devicesItem.speaker.length > 0
                     ? devicesItem.speaker.map((item) => (
-                        <option
-                          key={`voiceVideoSection_input_speak_${item.deviceId}`}
-                          value={item.deviceId}
-                        >
-                          {item.label}
-                        </option>
-                      ))
+                      <option
+                        key={`voiceVideoSection_input_speak_${item.deviceId}`}
+                        value={item.deviceId}
+                      >
+                        {item.label}
+                      </option>
+                    ))
                     : null}
                 </select>
               </div>
@@ -481,13 +487,13 @@ function VoiceVideoSection() {
               <option selected>Choose...</option>
               {devicesItem && Array.isArray(devicesItem.video) && devicesItem.video.length > 0
                 ? devicesItem.video.map((item) => (
-                    <option
-                      key={`voiceVideoSection_input_camera_${item.deviceId}`}
-                      value={item.deviceId}
-                    >
-                      {item.label}
-                    </option>
-                  ))
+                  <option
+                    key={`voiceVideoSection_input_camera_${item.deviceId}`}
+                    value={item.deviceId}
+                  >
+                    {item.label}
+                  </option>
+                ))
                 : null}
             </select>
           </li>
