@@ -28,6 +28,8 @@ import IpfsSection from './pages/Ipfs';
 import Web3Section from './pages/Web3';
 import LibreTranslateSection from './pages/LibreTranslate';
 
+const voiceChatEnabled = __ENV_APP__.ENABLE_VOICE_CHAT;
+
 function EmojiSection() {
   return (
     <>
@@ -84,13 +86,15 @@ const buildTabItems = () => {
       render: () => <AppearanceSection />,
     });
 
-    tabItems.push({
-      text: tabText.VOICEVIDEO,
-      key: 'voicevideo',
-      faSrc: 'bi bi-optical-audio-fill',
-      disabled: false,
-      render: () => <VoiceVideoSection />,
-    });
+    if (voiceChatEnabled) {
+      tabItems.push({
+        text: tabText.VOICEVIDEO,
+        key: 'voicevideo',
+        faSrc: 'bi bi-optical-audio-fill',
+        disabled: false,
+        render: () => <VoiceVideoSection />,
+      });
+    }
 
     tabItems.push({
       text: tabText.EMOJI,
