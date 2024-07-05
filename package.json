@@ -1,7 +1,7 @@
 {
-  "name": "pony-house-matrix",
+  "name": "rpghq-matrix-client",
   "version": "1.4.2",
-  "short_name": "Pony House",
+  "short_name": "RPGHQ Chat",
   "description": "The open source house, your house, the house for all matrix ponies",
   "main": "dist-electron/main/index.js",
   "engines": {
