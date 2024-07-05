@@ -351,41 +351,6 @@ function ProfileSection() {
           </li>
 
           <li className="list-group-item border-0">
-            <div className="small">Pronouns</div>
-            <div className="very-small text-gray">Enter your pronouns.</div>
-            <input
-              ref={pronounsRef}
-              type="text"
-              className="form-control form-control-bg"
-              maxLength="20"
-              defaultValue={userPronouns}
-            />
-            <Button className="mt-2" onClick={sendPronouns} variant="primary">
-              Submit
-            </Button>
-          </li>
-
-          <li className="list-group-item border-0">
-            <div className="small">Timezone</div>
-            <div className="very-small text-gray">Add timezone to your profile.</div>
-            <select
-              ref={timezoneRef}
-              className="form-select form-control-bg"
-              defaultValue={userTimezone}
-            >
-              <option>Choose...</option>
-              {moment.tz.names().map((item) => (
-                <option key={`profileSection_timezone_${item}`} value={item}>
-                  {item}
-                </option>
-              ))}
-            </select>
-            <Button className="mt-2" onClick={sendTimezone} variant="primary">
-              Submit
-            </Button>
-          </li>
-
-          <li className="list-group-item border-0">
             <div className="small">Banner</div>
 
             <div className="very-small text-gray">
