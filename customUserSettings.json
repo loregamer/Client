@@ -106,6 +106,13 @@
     },
     "@irc_madbringer:rpghq.org": {
       "profilePicture": "https://rpghq.org/forums/download/file.php?avatar=230.jpg"
+    },
+    "@vergil:rpghq.org": {
+      "profilePicture": "https://rpghq.org/forums/download/file.php?avatar=367.gif"
+    },
+    "@irc_Global:rpghq.org": {
+      "profilePicture": "https://i.postimg.cc/QtxCP9s3/image.png",
+      "chatColor": "#689EE0"
     }
   }
 }
