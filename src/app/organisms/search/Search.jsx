@@ -15,6 +15,7 @@ import Input from '../../atoms/input/Input';
 import ScrollView from '../../atoms/scroll/ScrollView';
 import RoomSelector from '../../molecules/room-selector/RoomSelector';
 import { getAppearance, getAnimatedImageUrl } from '../../../util/libs/appearance';
+import { getCustomAvatar } from '@src/util/libs/customUserSettings';
 
 function useVisiblityToggle(setResult) {
   const [isOpen, setIsOpen] = useState(false);
@@ -174,16 +175,25 @@ function Search() {
     let imageSrc = null;
     let imageAnimSrc = null;
     let iconSrc = null;
-
     if (item.type === 'direct') {
-      imageSrc =
-        item.room.getAvatarFallbackMember()?.getAvatarUrl(mx.baseUrl, 32, 32, 'crop') || null;
-      imageAnimSrc = !appearanceSettings.enableAnimParams
-        ? item.room.getAvatarFallbackMember()?.getAvatarUrl(mx.baseUrl)
-        : getAnimatedImageUrl(
-            item.room.getAvatarFallbackMember()?.getAvatarUrl(mx.baseUrl, 32, 32, 'crop'),
-          ) || null;
+      const dmTargetId = item.room.getAvatarFallbackMember()?.userId;
+      imageSrc = getCustomAvatar(dmTargetId) ||
+        item.room.getAvatarFallbackMember()?.getAvatarUrl(mx.baseUrl, 32, 32, 'crop') ||
+        null;
+
+      if (!appearanceSettings.enableAnimParams) {
+        imageAnimSrc = imageSrc;
+      } else {
+        imageAnimSrc = getCustomAvatar(dmTargetId) ||
+          getAnimatedImageUrl(
+            item.room.getAvatarFallbackMember()?.getAvatarUrl(mx.baseUrl, 32, 32, 'crop')
+          ) ||
+          null;
+      }
     } else {
+      imageSrc = getCustomAvatar(item.roomId) ||
+        item.room.getAvatarUrl(mx.baseUrl, 32, 32, 'crop') ||
+        null;
       iconSrc = joinRuleToIconSrc(item.room.getJoinRule(), item.type === 'space');
     }
 
