@@ -15,7 +15,7 @@ import {
   openReusableContextMenu,
 } from '../../../client/action/navigation';
 import AsyncSearch from '../../../util/AsyncSearch';
-import { memberByStatus, memberByPowerLevel } from '../../../util/sort';
+import { memberByPowerLevel, memberByAtoZ } from '../../../util/sort';
 
 import Text from '../../atoms/text/Text';
 import { Header } from '../../atoms/header/Header';
@@ -32,15 +32,25 @@ import UserOptions from '../../molecules/user-options/UserOptions';
 
 function simplyfiMembers(members) {
   const mx = initMatrix.matrixClient;
-  return members.map((member) => ({
-    user: mx.getUser(member.userId),
-    userId: member.userId,
-    name: getUsernameOfRoomMember(member),
-    username: member.userId.slice(1, member.userId.indexOf(':')),
-    avatarSrc: member.getAvatarUrl(mx.baseUrl, 32, 32, 'crop'),
-    peopleRole: getPowerLabel(member.powerLevel),
-    powerLevel: members.powerLevel,
-  }));
+  return members
+    .map((member) => {
+      const displayName = getUsernameOfRoomMember(member);
+      return {
+        user: mx.getUser(member.userId),
+        userId: member.userId,
+        name: displayName,
+        username: member.userId.slice(1, member.userId.indexOf(':')),
+        avatarSrc: member.getAvatarUrl(mx.baseUrl, 32, 32, 'crop'),
+        peopleRole: getPowerLabel(member.powerLevel),
+        powerLevel: member.powerLevel,
+        displayName: displayName.toLowerCase(), // for case-insensitive sorting
+      };
+    })
+    .sort((a, b) => {
+      const powerLevelDiff = memberByPowerLevel(a, b);
+      if (powerLevelDiff !== 0) return powerLevelDiff;
+      return memberByAtoZ(a, b);
+    });
 }
 
 const asyncSearch = new AsyncSearch();
@@ -53,7 +63,6 @@ function PeopleDrawer({
   sidebarTransition = false,
   isDrawer = true,
 }) {
-  const PER_PAGE_MEMBER = 50;
   const mx = initMatrix.matrixClient;
   const { directs } = initMatrix.roomList;
 
@@ -75,11 +84,12 @@ function PeopleDrawer({
   tinyAPI.emit('roomMembersOptions', newValues, isUserList);
   const defaultMembership = newValues.find((item) => item.value === 'join');
 
-  const [itemCount, setItemCount] = useState(PER_PAGE_MEMBER);
   const [membership, setMembership] = useState(defaultMembership);
   const [memberList, setMemberList] = useState([]);
   const [searchedMembers, setSearchedMembers] = useState(null);
+  const [sortedMemberList, setSortedMemberList] = useState([]);
   const searchRef = useRef(null);
+  const [isLoadingMembers, setIsLoadingMembers] = useState(true);
 
   const newIsUserList = !isDM || usersCount !== 2 || membership.value !== 'join';
   useEffect(() => {
@@ -91,97 +101,71 @@ function PeopleDrawer({
     [roomId, membership.value],
   );
 
-  function loadMorePeople() {
-    setItemCount(itemCount + PER_PAGE_MEMBER);
-  }
-
   function handleSearchData(data) {
     // NOTICE: data is passed as object property
     // because react sucks at handling state update with array.
     setSearchedMembers({ data });
-    setItemCount(PER_PAGE_MEMBER);
   }
 
   function handleSearch(e) {
-    const term = e.target.value;
+    const term = e.target.value.toLowerCase();
     if ((searchRef.current && term === '') || term === undefined) {
       searchRef.current.value = '';
       searchRef.current.focus();
       setSearchedMembers(null);
-      setItemCount(PER_PAGE_MEMBER);
-    } else asyncSearch.search(term);
+    } else {
+      const filteredMembers = sortedMemberList.filter(member =>
+        member.name.toLowerCase().includes(term) ||
+        member.userId.toLowerCase().includes(term)
+      );
+      setSearchedMembers({ data: filteredMembers, term });
+    }
   }
 
   useEffect(() => {
     asyncSearch.setup(memberList, {
       keys: ['name', 'username', 'userId'],
-      limit: PER_PAGE_MEMBER,
+      limit: Infinity,
     });
   }, [memberList]);
 
   useEffect(() => {
-    let isLoadingMembers = false;
-    let isRoomChanged = false;
+    let isMounted = true;
 
-    const updateMemberList = (event) => {
-      if (isLoadingMembers) return;
-      if (event && event?.getRoomId() !== roomId) return;
+    const loadAndSortMembers = async () => {
+      setIsLoadingMembers(true);
+      await room.loadMembersIfNeeded();
 
-      // Default
+      if (!isMounted) return;
+
+      let membersToSort;
       if (!Array.isArray(membership.custom)) {
-        const membersWithMembership = getMembersWithMembership(membership.value);
-        let membersData = [];
-
-        if (membersWithMembership.length > 1000) {
-          for (const item in membersWithMembership) {
-            const user = mx.getUser(membersWithMembership[item].userId);
-            if (user && user?.presence === 'online') {
-              membersData.push(membersWithMembership[item]);
-            }
-          }
-
-          membersData.sort(memberByPowerLevel);
-        } else {
-          membersWithMembership.sort(memberByStatus).sort(memberByPowerLevel);
-          membersData = membersWithMembership;
-        }
-
-        setMemberList(simplyfiMembers(membersData));
+        membersToSort = getMembersWithMembership(membership.value);
+      } else {
+        membersToSort = membership.custom;
       }
 
-      // Custom
-      else setMemberList(membership.custom);
+      const sortedMembers = simplyfiMembers(membersToSort);
+      setMemberList(sortedMembers);
+      setSortedMemberList(sortedMembers);
+      setIsLoadingMembers(false);
     };
 
-    if (searchRef.current) searchRef.current.value = '';
-    updateMemberList();
-    isLoadingMembers = true;
-    room.loadMembersIfNeeded().then(() => {
-      isLoadingMembers = false;
-      if (isRoomChanged) return;
-      updateMemberList();
-    });
+    loadAndSortMembers();
 
-    asyncSearch.on(asyncSearch.RESULT_SENT, handleSearchData);
+    const updateMemberList = () => {
+      loadAndSortMembers();
+    };
+
     mx.on('RoomMember.membership', updateMemberList);
     mx.on('RoomMember.powerLevel', updateMemberList);
-    mx.on('RoomMember.user', updateMemberList);
 
     return () => {
-      isRoomChanged = true;
-      setMemberList([]);
-      setSearchedMembers(null);
-      setItemCount(PER_PAGE_MEMBER);
-      asyncSearch.removeListener(asyncSearch.RESULT_SENT, handleSearchData);
+      isMounted = false;
       mx.removeListener('RoomMember.membership', updateMemberList);
       mx.removeListener('RoomMember.powerLevel', updateMemberList);
-      mx.removeListener('RoomMember.user', updateMemberList);
     };
-  }, [roomId, membership]);
-
-  useEffect(() => {
-    setMembership(defaultMembership);
-  }, [roomId]);
+  }, [roomId, membership, getMembersWithMembership]);
 
   const segments = [];
   const segmentsIndex = {};
@@ -199,7 +183,7 @@ function PeopleDrawer({
     }
   }
 
-  const mList = searchedMembers !== null ? searchedMembers.data : memberList.slice(0, itemCount);
+  const mList = searchedMembers ? searchedMembers.data : sortedMemberList;
   tinyAPI.emit('roomSearchedMembers', mList, membership);
   const showPeopleDrawer = !isDrawer && (isHoverSidebar || sidebarTransition);
 
@@ -210,15 +194,15 @@ function PeopleDrawer({
         onMouseEnter={
           isHoverSidebar
             ? () => {
-                if (isHoverSidebar) $('body').addClass('people-drawer-hover');
-              }
+              if (isHoverSidebar) $('body').addClass('people-drawer-hover');
+            }
             : null
         }
         onMouseLeave={
           isHoverSidebar
             ? () => {
-                if (isHoverSidebar) $('body').removeClass('people-drawer-hover');
-              }
+              if (isHoverSidebar) $('body').removeClass('people-drawer-hover');
+            }
             : null
         }
       >
@@ -334,21 +318,11 @@ function PeopleDrawer({
               ),
             )}
 
-            {isUserList ? (
-              <>
-                {(searchedMembers?.data.length === 0 || memberList.length === 0) && (
-                  <div className="people-drawer__noresult">
-                    <Text variant="b2">No results found!</Text>
-                  </div>
-                )}
-
-                <div className="people-drawer__load-more">
-                  {mList.length !== 0 &&
-                    memberList.length > itemCount &&
-                    searchedMembers === null && <Button onClick={loadMorePeople}>View more</Button>}
-                </div>
-              </>
-            ) : null}
+            {isUserList && (searchedMembers?.data.length === 0 || memberList.length === 0) && (
+              <div className="people-drawer__noresult">
+                <Text variant="b2">No results found!</Text>
+              </div>
+            )}
           </center>
 
           {isUserList ? (
@@ -378,15 +352,15 @@ function PeopleDrawer({
         onMouseEnter={
           isHoverSidebar
             ? () => {
-                if (isHoverSidebar) $('body').addClass('people-drawer-hover');
-              }
+              if (isHoverSidebar) $('body').addClass('people-drawer-hover');
+            }
             : null
         }
         onMouseLeave={
           isHoverSidebar
             ? () => {
-                if (isHoverSidebar) $('body').removeClass('people-drawer-hover');
-              }
+              if (isHoverSidebar) $('body').removeClass('people-drawer-hover');
+            }
             : null
         }
       >
