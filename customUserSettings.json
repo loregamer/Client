@@ -27,10 +27,11 @@
       "chatColor": "#00AA00"
     },
     "@appservice-irc:rpghq.org": {
-      "chatColor": "#FF9A56"
+      "chatColor": "#FF9A56",
+      "profilePicture": "https://i.postimg.cc/02qRygM6/image.png"
     },
     "@irc_tars:rpghq.org": {
-      "chatColor": "#FF9A56",
+      "chatColor": "#689EE0",
       "profilePicture": "https://i.postimg.cc/yxqyvt8S/info.png"
     },
     "@loregamer:rpghq.org": {
