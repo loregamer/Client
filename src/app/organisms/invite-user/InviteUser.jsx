@@ -13,6 +13,7 @@ import Spinner from '../../atoms/spinner/Spinner';
 import Input from '../../atoms/input/Input';
 import PopupWindow from '../../molecules/popup-window/PopupWindow';
 import RoomTile from '../../molecules/room-tile/RoomTile';
+import { getCustomAvatar } from '@src/util/libs/customUserSettings';
 
 function InviteUser({ isOpen, roomId, searchTerm, onRequestClose }) {
   const [isSearching, updateIsSearching] = useState(false);
@@ -210,13 +211,15 @@ function InviteUser({ isOpen, roomId, searchTerm, onRequestClose }) {
     return users.map((user) => {
       const userId = user.user_id;
       const name = typeof user.display_name === 'string' ? user.display_name : userId;
+      const customAvatar = getCustomAvatar(userId);
       return (
         <RoomTile
           key={userId}
           avatarSrc={
-            typeof user.avatar_url === 'string'
+            customAvatar ||
+            (typeof user.avatar_url === 'string'
               ? mx.mxcUrlToHttp(user.avatar_url, 42, 42, 'crop')
-              : null
+              : null)
           }
           name={name}
           id={userId}
