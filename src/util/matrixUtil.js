@@ -118,6 +118,7 @@ export function parseReply(rawBody) {
       displayName: null,
       replyBody: replyBody.trim(),
       body: body.trim(),
+      isDeprecatedFormat: false,
     };
     console.log('parseReply output:', result);
     return result;
@@ -128,11 +129,13 @@ export function parseReply(rawBody) {
   if (deprecatedMatch) {
     const [, userPart, replyBody, body] = deprecatedMatch;
     const isUserId = userPart.includes(':');
+    console.log('userPart: ', userPart, ' >> ', getUsername(userPart));
     const result = {
-      userId: isUserId ? userPart : null,
-      displayName: isUserId ? null : userPart,
+      userId: isUserId ? userPart : getUsernameOfRoomMember(userPart),
+      displayName: userPart,
       replyBody: replyBody.trim(),
       body: (body || '').trim(),
+      isDeprecatedFormat: true,
     };
     console.log('parseReply output:', result);
     return result;

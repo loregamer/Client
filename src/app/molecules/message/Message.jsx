@@ -294,9 +294,30 @@ const MessageReplyWrapper = React.memo(({ roomTimeline, eventId }) => {
   );
 });
 
+const DeprecatedReplyWrapper = React.memo(({ parsedReply }) => {
+  const reply = {
+    to: parsedReply.displayName || 'Unknown',
+    color: colorMXID(parsedReply.userId || ''),
+    body: parsedReply.replyBody || 'Unable to load reply',
+  };
+
+  console.log('Rendering DeprecatedReplyWrapper with:', reply);
+  return (
+    <MessageReply
+      name={reply.to}
+      color={reply.color}
+      body={reply.body}
+    />
+  );
+});
+
 MessageReplyWrapper.propTypes = {
   roomTimeline: PropTypes.shape({}).isRequired,
   eventId: PropTypes.string.isRequired,
+};
+
+DeprecatedReplyWrapper.propTypes = {
+  parsedReply: PropTypes.object.isRequired,
 };
 
 // Is Emoji only
@@ -1644,6 +1665,10 @@ function Message({
   let { body } = content;
   const [bodyData, setBodyData] = useState(body);
 
+  // Parse for replies
+  const parsedReply = parseReply(body);
+  const isDeprecatedFormat = parsedReply && parsedReply.isDeprecatedFormat;
+
   // make the message transparent while sending and red if it failed sending
   const [messageStatus, setMessageStatus] = useState(mEvent.status);
 
@@ -1700,12 +1725,10 @@ function Message({
     : false;
   const eventRelation = mEvent.getRelation();
 
-  console.log("forced parseReply", parseReply(body));
-
   // Is Reply
   const isReply =
     !!mEvent.replyEventId ||
-    parseReply(body) !== null &&
+    parsedReply !== null &&
     // don't render thread fallback replies
     !(eventRelation?.rel_type === THREAD_RELATION_TYPE.name && eventRelation?.is_falling_back);
 
@@ -1718,11 +1741,8 @@ function Message({
 
   // Is Reply
   if (isReply) {
-    const parsedReply = parseReply(body);
-    if (parsedReply) {
-      body = parsedReply.body;
-      customHTML = trimHTMLReply(customHTML);
-    }
+    body = parsedReply.body;
+    isDeprecatedFormat ? customHTML = null : customHTML = trimHTMLReply(customHTML);
   }
 
   // Fix Body String
@@ -2021,7 +2041,14 @@ function Message({
             )}
 
             {roomTimeline && isReply && (
-              <MessageReplyWrapper roomTimeline={roomTimeline} eventId={mEvent.replyEventId} />
+              isDeprecatedFormat ? (
+                <DeprecatedReplyWrapper parsedReply={parsedReply} />
+              ) : (
+                <MessageReplyWrapper
+                  roomTimeline={roomTimeline}
+                  eventId={mEvent.replyEventId}
+                />
+              )
             )}
 
             {!isEdit && (
@@ -2164,7 +2191,14 @@ function Message({
         )}
 
         {roomTimeline && isReply && (
-          <MessageReplyWrapper roomTimeline={roomTimeline} eventId={mEvent.replyEventId} />
+          isDeprecatedFormat ? (
+            <DeprecatedReplyWrapper parsedReply={parsedReply} />
+          ) : (
+            <MessageReplyWrapper
+              roomTimeline={roomTimeline}
+              eventId={mEvent.replyEventId}
+            />
+          )
         )}
 
         {!isEdit && (
