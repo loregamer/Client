@@ -50,7 +50,7 @@ function addRoomToMDirect(roomId, userId) {
  * @param {string} myUserId User ID of the current user
  * @returns {string} User ID of the user that the room is probably a DM with
  */
-function guessDMRoomTargetId(room, myUserId) {
+export function guessDMRoomTargetId(room, myUserId) {
   let oldestMemberTs;
   let oldestMember;
 

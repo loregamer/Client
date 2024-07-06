@@ -37,6 +37,8 @@ import copyText from '../profile-viewer/copyText';
 import { openPinMessageModal } from '../../../util/libs/pinMessage';
 import { openThreadsMessageModal } from '../../../util/libs/thread';
 import { getRoomInfo } from './Room';
+import { getCustomAvatar } from '@src/util/libs/customUserSettings';
+import { guessDMRoomTargetId } from '../../../client/action/room';
 
 function RoomViewHeader({ roomId, threadId, roomAlias, roomItem, disableActions = false }) {
   const [, forceUpdate] = useForceUpdate();
@@ -47,10 +49,18 @@ function RoomViewHeader({ roomId, threadId, roomAlias, roomItem, disableActions 
   const [isIconsColored, setIsIconsColored] = useState(settings.isSelectedThemeColored());
   settings.isThemeColoredDetector(useEffect, setIsIconsColored);
 
-  const getAvatarUrl = () =>
-    isDM
-      ? room.getAvatarFallbackMember()?.getAvatarUrl(mx.baseUrl, 36, 36, 'crop')
-      : room.getAvatarUrl(mx.baseUrl, 36, 36, 'crop');
+  const getAvatarUrl = () => {
+    const myUserId = mx.getUserId();
+    const dmTargetId = isDM ? guessDMRoomTargetId(room, myUserId) : null;
+
+    const dmAvatar = getCustomAvatar(dmTargetId) || room.getAvatarFallbackMember()?.getAvatarUrl(mx.baseUrl, 36, 36, 'crop');
+    const roomAvatar = room.getAvatarUrl(mx.baseUrl, 36, 36, 'crop');
+
+    console.log('=== DM Target ID ===', dmTargetId);
+
+    return isDM ? dmAvatar : roomAvatar;
+  };
+
   const [avatarSrc, setAvatarSrc] = useState(getAvatarUrl());
   const [roomName, setRoomName] = useState(roomAlias || room.name);
 

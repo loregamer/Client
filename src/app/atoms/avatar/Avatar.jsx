@@ -65,8 +65,6 @@ const Avatar = React.forwardRef(
     const finalImageSrc = customAvatar || imageSrc;
     const isImage = finalImageSrc !== null || isDefaultImage;
 
-    console.log('Avatar Debug:', { userId, customAvatar, imageSrc, finalImageSrc, isImage });
-
     // Freeze Avatar
     const freezeAvatarRef = useRef(null);
     const ref2 = useRef(null);

@@ -420,9 +420,7 @@ function ProfileViewer() {
     };
 
     if (user) {
-      console.log(userId);
       const customAvatar = getCustomAvatar(userId);
-      console.log('customAvatar', customAvatar);
       const avatarMxc = roomMember
         ? roomMember?.getMxcAvatarUrl?.()
         : user
