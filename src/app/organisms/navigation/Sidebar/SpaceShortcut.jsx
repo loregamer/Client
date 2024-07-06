@@ -138,7 +138,7 @@ function DraggableSpaceShortcut({ isActive, spaceId, isSpace, index, moveShortcu
 
   const [{ isDragging }, drag] = useDrag({
     type: 'PINNED_ITEM',
-    item: () => ({ spaceId, index }),
+    item: () => ({ id: spaceId, index }),
     collect: (monitor) => ({
       isDragging: monitor.isDragging(),
     }),
@@ -205,41 +205,52 @@ export default function SpaceShortcut() {
   const mx = initMatrix.matrixClient;
   const [selectedTab] = useSelectedTab();
   useNotificationUpdate();
-  const [pinnedItems, togglePinnedItem] = usePinnedItems();
+  const [pinnedItems, setPinnedItems] = usePinnedItems();
 
   const moveShortcut = (dragIndex, hoverIndex) => {
     const newPinnedItems = { ...pinnedItems };
-    const item = newPinnedItems.spaces[dragIndex];
-    newPinnedItems.spaces.splice(dragIndex, 1);
-    newPinnedItems.spaces.splice(hoverIndex, 0, item);
+    const allItems = [...newPinnedItems.spaces, ...newPinnedItems.rooms];
+    const [removed] = allItems.splice(dragIndex, 1);
+    allItems.splice(hoverIndex, 0, removed);
+
+    newPinnedItems.spaces = allItems.filter(id => initMatrix.roomList.spaces.has(id));
+    newPinnedItems.rooms = allItems.filter(id => !initMatrix.roomList.spaces.has(id));
+
+    setPinnedItems(newPinnedItems);
     localStorage.setItem('pinned_items', JSON.stringify(newPinnedItems));
-    togglePinnedItem(item, true);
   };
 
   const handleDrop = (dragIndex, dragItemId) => {
     const newPinnedItems = { ...pinnedItems };
-    const draggedItem = allPinnedItems[dragIndex];
+    const allItems = [...newPinnedItems.spaces, ...newPinnedItems.rooms];
+    const draggedItem = allItems[dragIndex];
+
     if (!draggedItem) return;
 
-    const type = draggedItem.isSpace ? 'spaces' : 'rooms';
+    const isSpace = initMatrix.roomList.spaces.has(draggedItem);
+    const type = isSpace ? 'spaces' : 'rooms';
 
-    newPinnedItems[type] = newPinnedItems[type].filter(id => id !== null).map(id => id !== dragItemId ? id : null);
-    newPinnedItems[type].splice(dragIndex, 0, dragItemId);
+    newPinnedItems[type] = newPinnedItems[type].filter(id => id !== dragItemId);
+    allItems.splice(dragIndex, 1);
+    allItems.splice(dragIndex, 0, dragItemId);
 
+    newPinnedItems.spaces = allItems.filter(id => initMatrix.roomList.spaces.has(id));
+    newPinnedItems.rooms = allItems.filter(id => !initMatrix.roomList.spaces.has(id));
+
+    setPinnedItems(newPinnedItems);
     localStorage.setItem('pinned_items', JSON.stringify(newPinnedItems));
-    togglePinnedItem(dragItemId, draggedItem.isSpace);
   };
 
   const allPinnedItems = [
-    ...pinnedItems.spaces.filter(id => id !== null).map(id => ({ id, isSpace: true })),
-    ...pinnedItems.rooms.filter(id => id !== null).map(id => ({ id, isSpace: false }))
+    ...pinnedItems.spaces.filter(id => id !== null && mx.getRoom(id)).map(id => ({ id, isSpace: true })),
+    ...pinnedItems.rooms.filter(id => id !== null && mx.getRoom(id)).map(id => ({ id, isSpace: false }))
   ];
 
   return (
     <DndProvider backend={HTML5Backend}>
       {allPinnedItems.map((item, index) => (
         <DraggableSpaceShortcut
-          key={item.id}
+          key={`${item.id}-${index}`}
           index={index}
           spaceId={item.id}
           isSpace={item.isSpace}
