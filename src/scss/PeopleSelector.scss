@@ -58,3 +58,8 @@
     color: var(--tc-surface-low);
   }
 }
+
+.following-conversation,
+.user-typing {
+  color: var(--tc-surface-normal); // Default color, can be overridden
+}
