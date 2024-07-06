@@ -12,6 +12,7 @@ import initMatrix from '../../../client/initMatrix';
 import insertCustomStatus from './insertCustomStatus';
 import { getAnimatedImageUrl, getAppearance } from '../../../util/libs/appearance';
 import { getCustomAvatar, getCustomUserSetting } from '../../../util/libs/customUserSettings';
+import { getUserColor } from '../../../util/matrixUtil'; // Import the getUserColor function
 
 function PeopleSelector({
   avatarSrc = null,
@@ -39,57 +40,17 @@ function PeopleSelector({
     getCustomStatus(getPresence(user));
   }
 
-  useEffect(() => {
-    if (user) {
-      const mx = initMatrix.matrixClient;
-
-      const updateProfileStatus = (mEvent, tinyData) => {
-        const appearanceSettings = getAppearance();
-        const status = $(statusRef.current);
-        const tinyUser = tinyData;
-
-        const newImageSrc =
-          tinyUser && tinyUser.avatarUrl
-            ? mx.mxcUrlToHttp(tinyUser.avatarUrl, avatarSize, avatarSize, 'crop')
-            : getCustomAvatar(user.userId) || null;
-        setImageSrc(newImageSrc);
-
-        const newImageAnimSrc =
-          tinyUser && tinyUser.avatarUrl
-            ? !appearanceSettings.enableAnimParams
-              ? mx.mxcUrlToHttp(tinyUser.avatarUrl)
-              : getAnimatedImageUrl(
-                mx.mxcUrlToHttp(tinyUser.avatarUrl, avatarSize, avatarSize, 'crop'),
-              )
-            : null;
-        setImageAnimSrc(newImageAnimSrc);
-
-        getCustomStatus(updateUserStatusIcon(status, tinyUser));
-      };
-
-      user.on('User.avatarUrl', updateProfileStatus);
-      user.on('User.currentlyActive', updateProfileStatus);
-      user.on('User.lastPresenceTs', updateProfileStatus);
-      user.on('User.presence', updateProfileStatus);
-      return () => {
-        user.removeListener('User.currentlyActive', updateProfileStatus);
-        user.removeListener('User.lastPresenceTs', updateProfileStatus);
-        user.removeListener('User.presence', updateProfileStatus);
-        user.removeListener('User.avatarUrl', updateProfileStatus);
-      };
-    }
-  }, [user]);
+  const usernameColor = user ? getUserColor(user.userId) : color;
 
   return (
     <button
+      type="button"
       className="people-selector"
-      onMouseUp={(e) => blurOnBubbling(e, '.people-selector')}
       onClick={onClick}
       onContextMenu={contextMenu}
-      type="button"
     >
       <Avatar
-        className="profile-image-container"
+        imgClass="profile-image-container"
         imageAnimSrc={imageAnimSrc}
         imageSrc={imageSrc}
         text={name}
@@ -103,7 +64,7 @@ function PeopleSelector({
         ''
       )}
 
-      <div className="small people-selector__name text-start">
+      <div className="small people-selector__name text-start" style={{ color: usernameColor }}>
         <span className="emoji-size-fix">{twemojifyReact(name)}</span>
         <div
           ref={customStatusRef}

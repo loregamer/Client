@@ -23,6 +23,15 @@
     "@oystersauce:rpghq.org": {
       "chatColor": "#00AA00"
     },
+    "@irc_Ganondorf:rpghq.org": {
+      "chatColor": "#00AA00"
+    },
+    "@appservice-irc:rpghq.org": {
+      "chatColor": "#FF9A56"
+    },
+    "@irc_tars:rpghq.org": {
+      "chatColor": "#FF9A56"
+    },
     "@loregamer:rpghq.org": {
       "chatColor": "#D22D2B"
     },
@@ -51,6 +60,7 @@
       "profilePicture": "https://rpghq.org/forums/download/file.php?avatar=225.png"
     },
     "@irc_Sex_Cult_Leader:rpghq.org": {
+      "chatColor": "#00BFFF",
       "profilePicture": "https://rpghq.org/forums/download/file.php?avatar=65.gif"
     },
     "@irc_stackofturtles:rpghq.org": {
