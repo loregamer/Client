@@ -17,3 +17,7 @@ export function getCustomUserSetting(userId, setting) {
   if (!customUserSettings || !customUserSettings.users[userId]) return null;
   return customUserSettings.users[userId][setting];
 }
+
+export function getCustomAvatar(userId) {
+  return getCustomUserSetting(userId, 'profilePicture');
+}

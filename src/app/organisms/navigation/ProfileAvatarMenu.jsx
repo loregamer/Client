@@ -299,7 +299,7 @@ function ProfileAvatarMenu() {
                   className={`action-button${microphoneMuted ? ' muted' : ''}`}
                   onClick={() => voiceChat.setMicrophoneMute(!microphoneMuted)}
                 />
-                {microphoneMuted ? <i className="fa-solid fa-slash tiny-block" /> : null}
+                {microphoneMuted ? <i className="fa-solid fa-microphone-slash" /> : null}
               </td>
 
               <td className="p-0 pe-1 py-1 text-end">

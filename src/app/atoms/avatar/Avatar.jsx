@@ -12,6 +12,7 @@ import RawIcon from '../system-icons/RawIcon';
 import { avatarInitials } from '../../../util/common';
 import { defaultAvatar, defaultProfileBanner, defaultSpaceBanner } from './defaultAvatar';
 import { getAppearance } from '../../../util/libs/appearance';
+import { getCustomUserSetting } from '@src/util/libs/customUserSettings';
 
 const ImageBrokenSVG = './img/svg/image-broken.svg';
 
@@ -56,9 +57,16 @@ const Avatar = React.forwardRef(
       isDefaultImage = false,
       animParentsCount = 4,
       theRef,
+      userId,
     },
     ref,
   ) => {
+    const customAvatar = getCustomUserSetting(userId, 'profilePicture'); // Get the custom avatar URL
+    const finalImageSrc = customAvatar || imageSrc;
+    const isImage = finalImageSrc !== null || isDefaultImage;
+
+    console.log('Avatar Debug:', { userId, customAvatar, imageSrc, finalImageSrc, isImage });
+
     // Freeze Avatar
     const freezeAvatarRef = useRef(null);
     const ref2 = useRef(null);
@@ -119,9 +127,6 @@ const Avatar = React.forwardRef(
       } else if (ref2.current) ref2.current.classList.add('avatar-react-loaded');
     };
 
-    const isImage = imageSrc !== null || isDefaultImage;
-
-    // Render
     return (
       <div
         onClick={onClick}
@@ -139,8 +144,8 @@ const Avatar = React.forwardRef(
                 className={`avatar-react${imgClass ? ` ${imgClass}` : ''}`}
                 draggable="false"
                 src={
-                  typeof imageSrc === 'string' && imageSrc.length > 0
-                    ? readImageUrl(imageSrc)
+                  typeof finalImageSrc === 'string' && finalImageSrc.length > 0
+                    ? readImageUrl(finalImageSrc)
                     : tinyDa
                 }
                 onLoad={onLoadAvatar}
@@ -172,12 +177,12 @@ const Avatar = React.forwardRef(
                 loadingimg="false"
                 animparentscount={animParentsCount}
                 animsrc={imageAnimSrc}
-                normalsrc={imageSrc}
+                normalsrc={finalImageSrc}
                 defaultavatar={tinyDa}
                 src={readImageUrl(tinyDa)}
                 onLoad={(e) => {
+                  e.target.setAttribute('loadedimg', 'true');
                   onLoadAvatar(e);
-                  loadAvatar(e);
                 }}
                 onError={(e) => {
                   e.target.src = ImageBrokenSVG;
@@ -185,8 +190,7 @@ const Avatar = React.forwardRef(
                 alt={text || 'avatar'}
               />
             )
-          ) : // Icons
-          faSrc !== null ? (
+          ) : faSrc !== null ? (
             <span
               style={{ backgroundColor: faSrc === null ? bgColor : 'transparent' }}
               className={`avatar__border${faSrc !== null ? '--active' : ''}`}
@@ -212,25 +216,26 @@ const Avatar = React.forwardRef(
         }
       </div>
     );
-  },
+  }
 );
 
-// Props
 Avatar.propTypes = {
+  onClick: PropTypes.func,
   neonColor: PropTypes.bool,
-  animParentsCount: PropTypes.number,
-  isDefaultImage: PropTypes.bool,
-  imageAnimSrc: PropTypes.string,
   text: PropTypes.string,
-  imgClass: PropTypes.string,
   bgColor: PropTypes.string,
-  className: PropTypes.string,
   iconSrc: PropTypes.string,
   faSrc: PropTypes.string,
   iconColor: PropTypes.string,
   imageSrc: PropTypes.string,
-  onClick: PropTypes.func,
-  size: PropTypes.oneOf(['large', 'normal', 'small', 'extra-small']),
+  size: PropTypes.oneOf(['normal', 'large', 'small', 'extra-small']),
+  className: PropTypes.string,
+  imgClass: PropTypes.string,
+  imageAnimSrc: PropTypes.string,
+  isDefaultImage: PropTypes.bool,
+  animParentsCount: PropTypes.number,
+  theRef: PropTypes.object,
+  userId: PropTypes.string,
 };
 
 export default Avatar;

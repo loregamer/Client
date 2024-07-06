@@ -89,6 +89,7 @@ import { tinyLinkifyFixer } from '../../../util/clear-urls/clearUrls';
 import { canPinMessage, isPinnedMessage, setPinMessage } from '../../../util/libs/pinMessage';
 import { mediaFix, tinyFixScrollChat } from '../media/mediaFix';
 import { everyoneTags } from '../global-notification/KeywordNotification';
+import { getCustomAvatar } from '../../../util/libs/customUserSettings'; // Import the custom avatar function
 
 function PlaceholderMessage() {
   return (
@@ -119,21 +120,25 @@ function PlaceholderMessage() {
 
 // Avatar Generator
 const MessageAvatar = React.memo(
-  ({ roomId, avatarSrc, avatarAnimSrc, userId, username, contextMenu, bgColor }) => (
-    <button
-      type="button"
-      onContextMenu={contextMenu}
-      onClick={() => openProfileViewer(userId, roomId)}
-    >
-      <Avatar
-        imgClass="profile-image-container"
-        imageAnimSrc={avatarAnimSrc}
-        imageSrc={avatarSrc}
-        text={username}
-        bgColor={bgColor}
-      />
-    </button>
-  ),
+  ({ roomId, avatarSrc, avatarAnimSrc, userId, username, contextMenu, bgColor }) => {
+    const customAvatarSrc = getCustomAvatar(userId) || avatarSrc;
+
+    return (
+      <button
+        type="button"
+        onContextMenu={contextMenu}
+        onClick={() => openProfileViewer(userId, roomId)}
+      >
+        <Avatar
+          imgClass="profile-image-container"
+          imageAnimSrc={avatarAnimSrc}
+          imageSrc={customAvatarSrc}
+          text={username}
+          bgColor={bgColor}
+        />
+      </button>
+    );
+  },
 );
 
 // Message Header
@@ -356,19 +361,19 @@ const createMessageData = (
       const insertMsg = () =>
         !isJquery
           ? twemojifyReact(
-              sanitizeCustomHtml(initMatrix.matrixClient, body, senderId),
-              undefined,
-              true,
-              false,
-              true,
-            )
+            sanitizeCustomHtml(initMatrix.matrixClient, body, senderId),
+            undefined,
+            true,
+            false,
+            true,
+          )
           : twemojify(
-              sanitizeCustomHtml(initMatrix.matrixClient, body, senderId),
-              undefined,
-              true,
-              false,
-              true,
-            );
+            sanitizeCustomHtml(initMatrix.matrixClient, body, senderId),
+            undefined,
+            true,
+            false,
+            true,
+          );
 
       const msgOptions = tinyAPI.emit(
         'messageBody',
@@ -466,16 +471,16 @@ const MessageBody = React.memo(
     // Message Data
     let msgData = !translateText
       ? createMessageData(
-          content,
-          body,
-          isCustomHTML,
-          isSystem,
-          false,
-          roomId,
-          senderId,
-          eventId,
-          threadId,
-        )
+        content,
+        body,
+        isCustomHTML,
+        isSystem,
+        false,
+        roomId,
+        senderId,
+        eventId,
+        threadId,
+      )
       : translateText;
 
     // Emoji Only
@@ -931,47 +936,47 @@ const MessageOptions = React.memo(
     });
 
     const translateMessage =
-      (hideMenu = () => {}) =>
-      () => {
-        hideMenu();
-        let sourceText = '';
-        try {
-          sourceText = customHTML
-            ? html(customHTML, roomId, threadId, { kind: 'edit', onlyPlain: true }).plain
-            : plain(body, roomId, threadId, { kind: 'edit', onlyPlain: true }).plain;
-          if (typeof sourceText !== 'string') sourceText = '';
-        } catch (err) {
-          console.error(err);
-          alert(err.message, 'Translate get text error');
-          sourceText = '';
-        }
+      (hideMenu = () => { }) =>
+        () => {
+          hideMenu();
+          let sourceText = '';
+          try {
+            sourceText = customHTML
+              ? html(customHTML, roomId, threadId, { kind: 'edit', onlyPlain: true }).plain
+              : plain(body, roomId, threadId, { kind: 'edit', onlyPlain: true }).plain;
+            if (typeof sourceText !== 'string') sourceText = '';
+          } catch (err) {
+            console.error(err);
+            alert(err.message, 'Translate get text error');
+            sourceText = '';
+          }
 
-        if (sourceText.length > 0) {
-          setLoadingPage('Translating message...');
-          libreTranslate
-            .translate(sourceText)
-            .then((text) => {
-              setLoadingPage(false);
-              if (typeof text === 'string') {
-                setTranslateText(text);
-              }
-            })
-            .catch((err) => {
-              setLoadingPage(false);
-              console.error(err);
-              alert(err.message, 'Libre Translate Progress Error');
-            });
-        } else {
-          alert('There is no text to translate here.', 'Libre Translate Progress Error');
-        }
-      };
+          if (sourceText.length > 0) {
+            setLoadingPage('Translating message...');
+            libreTranslate
+              .translate(sourceText)
+              .then((text) => {
+                setLoadingPage(false);
+                if (typeof text === 'string') {
+                  setTranslateText(text);
+                }
+              })
+              .catch((err) => {
+                setLoadingPage(false);
+                console.error(err);
+                alert(err.message, 'Libre Translate Progress Error');
+              });
+          } else {
+            alert('There is no text to translate here.', 'Libre Translate Progress Error');
+          }
+        };
 
     const removeTranslateMessage =
-      (hideMenu = () => {}) =>
-      () => {
-        hideMenu();
-        setTranslateText(null);
-      };
+      (hideMenu = () => { }) =>
+        () => {
+          hideMenu();
+          setTranslateText(null);
+        };
 
     return (
       <div className="message__options">
@@ -1068,8 +1073,8 @@ const MessageOptions = React.memo(
                           ? !appearanceSettings.enableAnimParams
                             ? mx.mxcUrlToHttp(user.avatarUrl)
                             : getAnimatedImageUrl(
-                                mx.mxcUrlToHttp(user.avatarUrl, 36, 36, 'crop'),
-                              ) ?? avatarDefaultColor(color)
+                              mx.mxcUrlToHttp(user.avatarUrl, 36, 36, 'crop'),
+                            ) ?? avatarDefaultColor(color)
                           : avatarDefaultColor(color);
 
                         const ct = $('<div>', {
@@ -1168,7 +1173,7 @@ const MessageOptions = React.memo(
                     tinyClipboard.copyText(
                       customHTML
                         ? html(customHTML, roomId, threadId, { kind: 'edit', onlyPlain: true })
-                            .plain
+                          .plain
                         : plain(body, roomId, threadId, { kind: 'edit', onlyPlain: true }).plain,
                     );
                     toast('Text successfully copied to the clipboard.');
@@ -1673,7 +1678,7 @@ function Message({
   const avatarAnimSrc = !appearanceSettings.enableAnimParams
     ? mEvent.sender?.getAvatarUrl(mx.baseUrl)
     : getAnimatedImageUrl(mEvent.sender?.getAvatarUrl(mx.baseUrl, 36, 36, 'crop')) ??
-      avatarDefaultColor(color);
+    avatarDefaultColor(color);
 
   // Content Data
   let isCustomHTML = content.format === 'org.matrix.custom.html';

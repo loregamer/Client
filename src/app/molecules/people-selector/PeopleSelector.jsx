@@ -10,8 +10,8 @@ import Avatar from '../../atoms/avatar/Avatar';
 import { getUserStatus, updateUserStatusIcon, getPresence } from '../../../util/onlineStatus';
 import initMatrix from '../../../client/initMatrix';
 import insertCustomStatus from './insertCustomStatus';
-
 import { getAnimatedImageUrl, getAppearance } from '../../../util/libs/appearance';
+import { getCustomAvatar, getCustomUserSetting } from '../../../util/libs/customUserSettings';
 
 function PeopleSelector({
   avatarSrc = null,
@@ -29,7 +29,7 @@ function PeopleSelector({
   const customStatusRef = useRef(null);
 
   const [imageAnimSrc, setImageAnimSrc] = useState(avatarAnimSrc);
-  const [imageSrc, setImageSrc] = useState(avatarSrc);
+  const [imageSrc, setImageSrc] = useState(avatarSrc || (user ? getCustomAvatar(user.userId) : null));
 
   const getCustomStatus = (content) => {
     insertCustomStatus(customStatusRef, content);
@@ -43,18 +43,15 @@ function PeopleSelector({
     if (user) {
       const mx = initMatrix.matrixClient;
 
-      // Update Status Profile
       const updateProfileStatus = (mEvent, tinyData) => {
-        // Get Status
         const appearanceSettings = getAppearance();
         const status = $(statusRef.current);
         const tinyUser = tinyData;
 
-        // Image
         const newImageSrc =
           tinyUser && tinyUser.avatarUrl
             ? mx.mxcUrlToHttp(tinyUser.avatarUrl, avatarSize, avatarSize, 'crop')
-            : null;
+            : getCustomAvatar(user.userId) || null;
         setImageSrc(newImageSrc);
 
         const newImageAnimSrc =
@@ -62,16 +59,14 @@ function PeopleSelector({
             ? !appearanceSettings.enableAnimParams
               ? mx.mxcUrlToHttp(tinyUser.avatarUrl)
               : getAnimatedImageUrl(
-                  mx.mxcUrlToHttp(tinyUser.avatarUrl, avatarSize, avatarSize, 'crop'),
-                )
+                mx.mxcUrlToHttp(tinyUser.avatarUrl, avatarSize, avatarSize, 'crop'),
+              )
             : null;
         setImageAnimSrc(newImageAnimSrc);
 
-        // Update Status Icon
         getCustomStatus(updateUserStatusIcon(status, tinyUser));
       };
 
-      // Read Events
       user.on('User.avatarUrl', updateProfileStatus);
       user.on('User.currentlyActive', updateProfileStatus);
       user.on('User.lastPresenceTs', updateProfileStatus);
