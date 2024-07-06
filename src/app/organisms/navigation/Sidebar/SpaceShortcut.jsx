@@ -8,12 +8,13 @@ import initMatrix from '../../../../client/initMatrix';
 import { colorMXID } from '../../../../util/colorMXID';
 import { moveSpaceShortcut } from '../../../../client/action/accountData';
 import SpaceOptions from '../../../molecules/space-options/SpaceOptions';
+import RoomOptions from '../../../molecules/room-options/RoomOptions';
 
 import SidebarAvatar from '../../../molecules/sidebar-avatar/SidebarAvatar';
 import Avatar from '../../../atoms/avatar/Avatar';
 import NotificationBadge from '../../../atoms/badge/NotificationBadge';
 
-import { selectTab, openReusableContextMenu } from '../../../../client/action/navigation';
+import { selectTab, openReusableContextMenu, selectRoom, selectRoomMode } from '../../../../client/action/navigation';
 
 import { useSelectedTab } from '../../../hooks/useSelectedTab';
 import { abbreviateNumber, getEventCords } from '../../../../util/common';
@@ -21,10 +22,10 @@ import cons from '../../../../client/state/cons';
 
 import { notificationClasses, useNotificationUpdate } from './Notification';
 import { getAppearance, getAnimatedImageUrl } from '../../../../util/libs/appearance';
+import { usePinnedItems } from '../../shortcut-spaces/ShortcutSpaces';
 
 // Draggable Space Shortcut
-function DraggableSpaceShortcut({ isActive, spaceId, index, moveShortcut, onDrop }) {
-  // Data
+function DraggableSpaceShortcut({ isActive, spaceId, isSpace, index, moveShortcut, onDrop }) {
   const mx = initMatrix.matrixClient;
   const { notifications } = initMatrix;
   const room = mx.getRoom(spaceId);
@@ -32,24 +33,28 @@ function DraggableSpaceShortcut({ isActive, spaceId, index, moveShortcut, onDrop
   const avatarRef = useRef(null);
   const appearanceSettings = getAppearance();
 
-  // Options
-  const openSpaceOptions = (e, sId) => {
+  if (!room) {
+    console.warn(`Room not found for spaceId: ${spaceId}`);
+    return null;
+  }
+
+  const openOptions = (e, id) => {
     e.preventDefault();
     openReusableContextMenu('right', getEventCords(e, '.sidebar-avatar'), (closeMenu) => (
-      <SpaceOptions roomId={sId} afterOptionSelect={closeMenu} />
+      isSpace ? <SpaceOptions roomId={id} afterOptionSelect={closeMenu} />
+        : <RoomOptions roomId={id} afterOptionSelect={closeMenu} />
     ));
   };
 
-  // Drop
   const [, drop] = useDrop({
-    accept: 'SPACE_SHORTCUT',
+    accept: 'PINNED_ITEM',
     collect(monitor) {
       return {
         handlerId: monitor.getHandlerId(),
       };
     },
     drop(item) {
-      onDrop(item.index, item.spaceId);
+      onDrop(item.index, item.id);
     },
     hover(item, monitor) {
       if (!shortcutRef.current) return;
@@ -63,44 +68,44 @@ function DraggableSpaceShortcut({ isActive, spaceId, index, moveShortcut, onDrop
       const clientOffset = monitor.getClientOffset();
       const hoverClientY = clientOffset.y - hoverBoundingRect.top;
 
-      if (dragIndex < hoverIndex && hoverClientY < hoverMiddleY) {
-        return;
-      }
-      if (dragIndex > hoverIndex && hoverClientY > hoverMiddleY) {
-        return;
-      }
+      if (dragIndex < hoverIndex && hoverClientY < hoverMiddleY) return;
+      if (dragIndex > hoverIndex && hoverClientY > hoverMiddleY) return;
+
       moveShortcut(dragIndex, hoverIndex);
       item.index = hoverIndex;
     },
   });
 
-  // Dragging
   const [{ isDragging }, drag] = useDrag({
-    type: 'SPACE_SHORTCUT',
+    type: 'PINNED_ITEM',
     item: () => ({ spaceId, index }),
     collect: (monitor) => ({
       isDragging: monitor.isDragging(),
     }),
   });
 
-  // Final Drag Drop
   drag(avatarRef);
   drop(shortcutRef);
 
-  // Style
   if (shortcutRef.current) {
     if (isDragging) shortcutRef.current.style.opacity = 0;
     else shortcutRef.current.style.opacity = 1;
   }
 
-  // Complete
   return (
     <SidebarAvatar
       ref={shortcutRef}
       active={isActive}
       tooltip={room.name}
-      onClick={() => selectTab(spaceId, true)}
-      onContextMenu={(e) => openSpaceOptions(e, spaceId)}
+      onClick={() => {
+        if (isSpace) {
+          selectTab(spaceId, true);
+        } else {
+          selectRoomMode('room');
+          selectRoom(spaceId);
+        }
+      }}
+      onContextMenu={(e) => openOptions(e, spaceId)}
       avatar={
         <Avatar
           className="profile-image-container"
@@ -113,8 +118,8 @@ function DraggableSpaceShortcut({ isActive, spaceId, index, moveShortcut, onDrop
             !appearanceSettings.enableAnimParams
               ? room.getAvatarUrl(initMatrix.matrixClient.baseUrl)
               : getAnimatedImageUrl(
-                  room.getAvatarUrl(initMatrix.matrixClient.baseUrl, 42, 42, 'crop'),
-                ) || null
+                room.getAvatarUrl(initMatrix.matrixClient.baseUrl, 42, 42, 'crop'),
+              ) || null
           }
           imageSrc={room.getAvatarUrl(initMatrix.matrixClient.baseUrl, 42, 42, 'crop') || null}
           isDefaultImage
@@ -136,52 +141,55 @@ function DraggableSpaceShortcut({ isActive, spaceId, index, moveShortcut, onDrop
 DraggableSpaceShortcut.propTypes = {
   spaceId: PropTypes.string.isRequired,
   isActive: PropTypes.bool.isRequired,
+  isSpace: PropTypes.bool.isRequired,
   index: PropTypes.number.isRequired,
   moveShortcut: PropTypes.func.isRequired,
   onDrop: PropTypes.func.isRequired,
 };
 
-// Space Shortcut
 export default function SpaceShortcut() {
-  // Data
-  const { accountData } = initMatrix;
+  const mx = initMatrix.matrixClient;
   const [selectedTab] = useSelectedTab();
   useNotificationUpdate();
-  const [spaceShortcut, setSpaceShortcut] = useState([...accountData.spaceShortcut]);
+  const [pinnedItems, togglePinnedItem] = usePinnedItems();
 
-  // Effect
-  useEffect(() => {
-    const handleShortcut = () => setSpaceShortcut([...accountData.spaceShortcut]);
-    accountData.on(cons.events.accountData.SPACE_SHORTCUT_UPDATED, handleShortcut);
-    return () => {
-      accountData.removeListener(cons.events.accountData.SPACE_SHORTCUT_UPDATED, handleShortcut);
-    };
-  }, []);
-
-  // Move Data
   const moveShortcut = (dragIndex, hoverIndex) => {
-    const dragSpaceId = spaceShortcut[dragIndex];
-    const newShortcuts = [...spaceShortcut];
-    newShortcuts.splice(dragIndex, 1);
-    newShortcuts.splice(hoverIndex, 0, dragSpaceId);
-    setSpaceShortcut(newShortcuts);
+    const newPinnedItems = { ...pinnedItems };
+    const item = newPinnedItems.spaces[dragIndex];
+    newPinnedItems.spaces.splice(dragIndex, 1);
+    newPinnedItems.spaces.splice(hoverIndex, 0, item);
+    localStorage.setItem('pinned_items', JSON.stringify(newPinnedItems));
+    togglePinnedItem(item, true);
   };
 
-  // Drop Move Data
-  const handleDrop = (dragIndex, dragSpaceId) => {
-    if ([...accountData.spaceShortcut][dragIndex] === dragSpaceId) return;
-    moveSpaceShortcut(dragSpaceId, dragIndex);
+  const handleDrop = (dragIndex, dragItemId) => {
+    const newPinnedItems = { ...pinnedItems };
+    const draggedItem = allPinnedItems[dragIndex];
+    if (!draggedItem) return;
+
+    const type = draggedItem.isSpace ? 'spaces' : 'rooms';
+
+    newPinnedItems[type] = newPinnedItems[type].filter(id => id !== dragItemId && id !== null);
+    newPinnedItems[type].splice(dragIndex, 0, dragItemId);
+
+    localStorage.setItem('pinned_items', JSON.stringify(newPinnedItems));
+    togglePinnedItem(dragItemId, draggedItem.isSpace);
   };
 
-  // Complete
+  const allPinnedItems = [
+    ...pinnedItems.spaces.filter(id => id !== null).map(id => ({ id, isSpace: true })),
+    ...pinnedItems.rooms.filter(id => id !== null).map(id => ({ id, isSpace: false }))
+  ];
+
   return (
     <DndProvider backend={HTML5Backend}>
-      {spaceShortcut.map((shortcut, index) => (
+      {allPinnedItems.map((item, index) => (
         <DraggableSpaceShortcut
-          key={shortcut}
+          key={item.id}
           index={index}
-          spaceId={shortcut}
-          isActive={selectedTab === shortcut}
+          spaceId={item.id}
+          isSpace={item.isSpace}
+          isActive={selectedTab === item.id}
           moveShortcut={moveShortcut}
           onDrop={handleDrop}
         />

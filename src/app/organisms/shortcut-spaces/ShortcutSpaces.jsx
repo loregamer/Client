@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 
 import initMatrix from '../../../client/initMatrix';
 import cons from '../../../client/state/cons';
@@ -17,80 +17,100 @@ import Dialog from '../../molecules/dialog/Dialog';
 
 import { useSpaceShortcut } from '../../hooks/useSpaceShortcut';
 
+export function usePinnedItems() {
+  const [pinnedItems, setPinnedItems] = useState(() => {
+    const pinnedData = localStorage.getItem('pinned_items');
+    return pinnedData ? JSON.parse(pinnedData) : { spaces: [], rooms: [] };
+  });
+
+  const togglePinnedItem = useCallback((itemId, isSpace) => {
+    setPinnedItems((prevPinnedItems) => {
+      const type = isSpace ? 'spaces' : 'rooms';
+      const newItems = prevPinnedItems[type].includes(itemId)
+        ? prevPinnedItems[type].filter((id) => id !== itemId)
+        : [...prevPinnedItems[type], itemId];
+      const newPinnedItems = { ...prevPinnedItems, [type]: newItems };
+      localStorage.setItem('pinned_items', JSON.stringify(newPinnedItems));
+      return newPinnedItems;
+    });
+  }, []);
+
+  return [pinnedItems, togglePinnedItem];
+}
+
 function ShortcutSpacesContent() {
   const mx = initMatrix.matrixClient;
-  const { spaces, roomIdToParents } = initMatrix.roomList;
+  const { spaces, rooms, directs, roomIdToParents } = initMatrix.roomList;
 
-  const [spaceShortcut] = useSpaceShortcut();
-  const spaceWithoutShortcut = [...spaces]
-    .filter((spaceId) => !spaceShortcut.includes(spaceId))
-    .sort(roomIdByAtoZ);
+  const [pinnedItems, togglePinnedItem] = usePinnedItems();
+  const unpinnedSpaces = [...spaces].filter((spaceId) => !pinnedItems.spaces.includes(spaceId)).sort(roomIdByAtoZ);
+  const unpinnedRooms = [...rooms, ...directs].filter((roomId) => !pinnedItems.rooms.includes(roomId)).sort(roomIdByAtoZ);
 
   const [process, setProcess] = useState(null);
-  const [selected, setSelected] = useState([]);
+  const [selected, setSelected] = useState({ spaces: [], rooms: [] });
 
   useEffect(() => {
     if (process !== null) {
       setProcess(null);
-      setSelected([]);
+      setSelected({ spaces: [], rooms: [] });
     }
-  }, [spaceShortcut]);
+  }, [pinnedItems]);
 
-  const toggleSelection = (sId) => {
+  const toggleSelection = (id, isSpace) => {
     if (process !== null) return;
-    const newSelected = [...selected];
-    const selectedIndex = newSelected.indexOf(sId);
+    setSelected((prev) => {
+      const type = isSpace ? 'spaces' : 'rooms';
+      const newSelected = [...prev[type]];
+      const selectedIndex = newSelected.indexOf(id);
 
-    if (selectedIndex > -1) {
-      newSelected.splice(selectedIndex, 1);
-      setSelected(newSelected);
-      return;
-    }
-    newSelected.push(sId);
-    setSelected(newSelected);
+      if (selectedIndex > -1) {
+        newSelected.splice(selectedIndex, 1);
+      } else {
+        newSelected.push(id);
+      }
+
+      return { ...prev, [type]: newSelected };
+    });
   };
 
   const handleAdd = () => {
-    setProcess(`Pinning ${selected.length} spaces...`);
-    createSpaceShortcut(selected);
+    setProcess(`Pinning ${selected.spaces.length + selected.rooms.length} items...`);
+    selected.spaces.forEach((spaceId) => togglePinnedItem(spaceId, true));
+    selected.rooms.forEach((roomId) => togglePinnedItem(roomId, false));
   };
 
-  const renderSpace = (spaceId, isShortcut) => {
-    const room = mx.getRoom(spaceId);
+  const renderItem = (id, isSpace, isPinned) => {
+    const room = mx.getRoom(id);
     if (!room) return null;
 
-    const parentSet = roomIdToParents.get(spaceId);
-    const parentNames = parentSet
-      ? [...parentSet].map((parentId) => mx.getRoom(parentId).name)
-      : undefined;
-    const parents = parentNames ? parentNames.join(', ') : null;
+    const name = room.name;
+    const avatarSrc = room.getAvatarUrl(mx.baseUrl, 32, 32, 'crop') || null;
 
-    const toggleSelected = () => toggleSelection(spaceId);
-    const deleteShortcut = () => deleteSpaceShortcut(spaceId);
+    const toggleSelected = () => toggleSelection(id, isSpace);
+    const togglePin = () => togglePinnedItem(id, isSpace);
 
     return (
       <RoomSelector
-        key={spaceId}
-        name={room.name}
-        parentName={parents}
-        roomId={spaceId}
-        imageSrc={null}
-        iconSrc={joinRuleToIconSrc(room.getJoinRule(), true)}
+        key={id}
+        name={name}
+        roomId={id}
+        imageSrc={avatarSrc}
+        iconSrc={joinRuleToIconSrc(room.getJoinRule(), isSpace)}
         isUnread={false}
         notificationCount={0}
         isAlert={false}
-        onClick={isShortcut ? deleteShortcut : toggleSelected}
+        onClick={isPinned ? togglePin : toggleSelected}
         options={
-          isShortcut ? (
+          isPinned ? (
             <IconButton
-              fa={isShortcut ? 'bi bi-pin-angle-fill' : 'bi bi-pin-angle'}
+              fa="bi bi-pin-angle-fill"
               size="small"
-              onClick={deleteShortcut}
+              onClick={togglePin}
               disabled={process !== null}
             />
           ) : (
             <Checkbox
-              isActive={selected.includes(spaceId)}
+              isActive={selected[isSpace ? 'spaces' : 'rooms'].includes(id)}
               variant="success"
               onToggle={toggleSelected}
               tabIndex={-1}
@@ -105,19 +125,25 @@ function ShortcutSpacesContent() {
   return (
     <>
       <Text className="shortcut-spaces__header" variant="b3" weight="bold">
-        Pinned spaces
+        Pinned items
       </Text>
-      {spaceShortcut.length === 0 && <div className="small px-2">No pinned spaces</div>}
-      {spaceShortcut.map((spaceId) => renderSpace(spaceId, true))}
+      {pinnedItems.spaces.length === 0 && pinnedItems.rooms.length === 0 && (
+        <div className="small px-2">No pinned items</div>
+      )}
+      {pinnedItems.spaces.map((spaceId) => renderItem(spaceId, true, true))}
+      {pinnedItems.rooms.map((roomId) => renderItem(roomId, false, true))}
       <Text className="shortcut-spaces__header" variant="b3" weight="bold">
-        Unpinned spaces
+        Unpinned items
       </Text>
-      {spaceWithoutShortcut.length === 0 && <Text>No unpinned spaces</Text>}
-      {spaceWithoutShortcut.map((spaceId) => renderSpace(spaceId, false))}
-      {selected.length !== 0 && (
+      {unpinnedSpaces.length === 0 && unpinnedRooms.length === 0 && <Text>No unpinned items</Text>}
+      {unpinnedSpaces.map((spaceId) => renderItem(spaceId, true, false))}
+      {unpinnedRooms.map((roomId) => renderItem(roomId, false, false))}
+      {(selected.spaces.length !== 0 || selected.rooms.length !== 0) && (
         <div className="shortcut-spaces__footer">
           {process && <Spinner size="small" />}
-          <Text weight="medium">{process || `${selected.length} spaces selected`}</Text>
+          <Text weight="medium">
+            {process || `${selected.spaces.length + selected.rooms.length} items selected`}
+          </Text>
           {!process && (
             <Button onClick={handleAdd} variant="primary">
               Pin
