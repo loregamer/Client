@@ -23,6 +23,8 @@ import cons from '../../../../client/state/cons';
 import { notificationClasses, useNotificationUpdate } from './Notification';
 import { getAppearance, getAnimatedImageUrl } from '../../../../util/libs/appearance';
 import { usePinnedItems } from '../../shortcut-spaces/ShortcutSpaces';
+import { guessDMRoomTargetId } from '@src/client/action/room';
+import { getCustomAvatar } from '@src/util/libs/customUserSettings';
 
 // Draggable Space Shortcut
 function DraggableSpaceShortcut({ isActive, spaceId, isSpace, index, moveShortcut, onDrop }) {
@@ -32,6 +34,64 @@ function DraggableSpaceShortcut({ isActive, spaceId, isSpace, index, moveShortcu
   const shortcutRef = useRef(null);
   const avatarRef = useRef(null);
   const appearanceSettings = getAppearance();
+
+  const [imgSrc, setImgSrc] = useState(null);
+  const [imgAnimSrc, setImgAnimSrc] = useState(null);
+  const [roomName, setRoomName] = useState(room?.name);
+
+  useEffect(() => {
+    if (!room) return;
+
+    const updateRoomInfo = () => {
+      let newImgSrc, newImgAnimSrc;
+
+      const isDM = initMatrix.roomList.directs.has(spaceId);
+      const myUserId = mx.getUserId();
+      const dmTargetId = isDM ? guessDMRoomTargetId(room, myUserId) : null;
+
+      if (isDM) {
+        const dmUser = dmTargetId ? mx.getUser(dmTargetId) : null;
+        const customAvatar = getCustomAvatar(dmTargetId);
+
+        if (customAvatar) {
+          newImgSrc = customAvatar;
+          newImgAnimSrc = !appearanceSettings.enableAnimParams
+            ? customAvatar
+            : getAnimatedImageUrl(customAvatar);
+        } else if (dmUser && dmUser.avatarUrl) {
+          newImgSrc = mx.mxcUrlToHttp(dmUser.avatarUrl, 32, 32, 'crop');
+          newImgAnimSrc = !appearanceSettings.enableAnimParams
+            ? mx.mxcUrlToHttp(dmUser.avatarUrl)
+            : getAnimatedImageUrl(mx.mxcUrlToHttp(dmUser.avatarUrl, 32, 32, 'crop'));
+        } else {
+          newImgSrc = room.getAvatarFallbackMember()?.getAvatarUrl(mx.baseUrl, 32, 32, 'crop') || null;
+          newImgAnimSrc = !appearanceSettings.enableAnimParams
+            ? room.getAvatarFallbackMember()?.getAvatarUrl(mx.baseUrl)
+            : getAnimatedImageUrl(room.getAvatarFallbackMember()?.getAvatarUrl(mx.baseUrl, 32, 32, 'crop')) || null;
+        }
+
+        setRoomName(dmUser?.displayName || dmUser?.userId);
+      } else {
+        newImgSrc = room.getAvatarUrl(mx.baseUrl, 32, 32, 'crop') || null;
+        newImgAnimSrc = !appearanceSettings.enableAnimParams
+          ? room.getAvatarUrl(mx.baseUrl)
+          : getAnimatedImageUrl(room.getAvatarUrl(mx.baseUrl, 32, 32, 'crop')) || null;
+      }
+
+      setImgSrc(newImgSrc);
+      setImgAnimSrc(newImgAnimSrc);
+    };
+
+    updateRoomInfo();
+
+    room.on('Room.name', updateRoomInfo);
+    room.on('Room.avatar', updateRoomInfo);
+
+    return () => {
+      room.removeListener('Room.name', updateRoomInfo);
+      room.removeListener('Room.avatar', updateRoomInfo);
+    };
+  }, [room, appearanceSettings]);
 
   if (!room) {
     console.warn(`Room not found for spaceId: ${spaceId}`);
@@ -96,7 +156,7 @@ function DraggableSpaceShortcut({ isActive, spaceId, isSpace, index, moveShortcu
     <SidebarAvatar
       ref={shortcutRef}
       active={isActive}
-      tooltip={room.name}
+      tooltip={roomName}
       onClick={() => {
         if (isSpace) {
           selectTab(spaceId, true);
@@ -110,19 +170,13 @@ function DraggableSpaceShortcut({ isActive, spaceId, isSpace, index, moveShortcu
         <Avatar
           className="profile-image-container"
           ref={avatarRef}
-          text={room.name}
+          text={roomName}
           bgColor={colorMXID(room.roomId)}
           size="normal"
           animParentsCount={2}
-          imageAnimSrc={
-            !appearanceSettings.enableAnimParams
-              ? room.getAvatarUrl(initMatrix.matrixClient.baseUrl)
-              : getAnimatedImageUrl(
-                room.getAvatarUrl(initMatrix.matrixClient.baseUrl, 42, 42, 'crop'),
-              ) || null
-          }
-          imageSrc={room.getAvatarUrl(initMatrix.matrixClient.baseUrl, 42, 42, 'crop') || null}
-          isDefaultImage
+          imageAnimSrc={imgAnimSrc}
+          imageSrc={imgSrc}
+          isDefaultImage={!imgSrc}
         />
       }
       notificationBadge={
@@ -169,7 +223,7 @@ export default function SpaceShortcut() {
 
     const type = draggedItem.isSpace ? 'spaces' : 'rooms';
 
-    newPinnedItems[type] = newPinnedItems[type].filter(id => id !== dragItemId && id !== null);
+    newPinnedItems[type] = newPinnedItems[type].filter(id => id !== null).map(id => id !== dragItemId ? id : null);
     newPinnedItems[type].splice(dragIndex, 0, dragItemId);
 
     localStorage.setItem('pinned_items', JSON.stringify(newPinnedItems));

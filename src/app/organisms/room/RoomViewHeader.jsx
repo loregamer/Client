@@ -56,8 +56,6 @@ function RoomViewHeader({ roomId, threadId, roomAlias, roomItem, disableActions 
     const dmAvatar = getCustomAvatar(dmTargetId) || room.getAvatarFallbackMember()?.getAvatarUrl(mx.baseUrl, 36, 36, 'crop');
     const roomAvatar = room.getAvatarUrl(mx.baseUrl, 36, 36, 'crop');
 
-    console.log('=== DM Target ID ===', dmTargetId);
-
     return isDM ? dmAvatar : roomAvatar;
   };
 
