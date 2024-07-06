@@ -36,6 +36,7 @@ import tinyAPI from '../../../util/mods';
 import { rule3 } from '../../../util/tools';
 import { mediaFix } from '../../molecules/media/mediaFix';
 import matrixAppearance, { getAppearance } from '../../../util/libs/appearance';
+import { getCustomAvatar } from '@src/util/libs/customUserSettings';
 
 let forceDelay = false;
 let loadingPage = false;
@@ -72,10 +73,13 @@ function RoomIntroContainer({ event, timeline }) {
 
   const roomTopic = getCurrentState(room).getStateEvents('m.room.topic')[0]?.getContent().topic;
   const isDM = roomList.directs.has(timeline.roomId);
-  let avatarSrc = room.getAvatarUrl(mx.baseUrl, 80, 80, 'crop');
-  avatarSrc = isDM
-    ? room.getAvatarFallbackMember()?.getAvatarUrl(mx.baseUrl, 80, 80, 'crop')
-    : avatarSrc;
+  let avatarSrc;
+  if (isDM) {
+    const dmTargetId = room.getAvatarFallbackMember()?.userId;
+    avatarSrc = getCustomAvatar(dmTargetId) || room.getAvatarFallbackMember()?.getAvatarUrl(mx.baseUrl, 80, 80, 'crop');
+  } else {
+    avatarSrc = getCustomAvatar(roomId) || room.getAvatarUrl(mx.baseUrl, 80, 80, 'crop');
+  }
 
   const heading = isDM ? roomTitle : `Welcome to ${roomTitle}`;
   const topic = !thread
