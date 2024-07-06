@@ -50,6 +50,7 @@ import renderEthereum from './tabs/ethereum';
 
 import copyText from './copyText';
 import tinyAPI from '../../../util/mods';
+import { getCustomAvatar } from '@src/util/libs/customUserSettings';
 
 function ModerationTools({ roomId, userId }) {
   const mx = initMatrix.matrixClient;
@@ -419,16 +420,20 @@ function ProfileViewer() {
     };
 
     if (user) {
+      console.log(userId);
+      const customAvatar = getCustomAvatar(userId);
+      console.log('customAvatar', customAvatar);
       const avatarMxc = roomMember
         ? roomMember?.getMxcAvatarUrl?.()
         : user
           ? user?.avatarUrl
           : null;
 
-      const newAvatar =
+      const newAvatar = customAvatar || (
         avatarMxc && avatarMxc !== 'null' && avatarMxc !== null
           ? mx.mxcUrlToHttp(avatarMxc)
-          : avatarDefaultColor(colorMXID(userId));
+          : avatarDefaultColor(colorMXID(userId))
+      );
 
       setAvatarUrl(newAvatar);
       setUsername(roomMember ? getUsernameOfRoomMember(roomMember) : getTheUsername());
@@ -671,8 +676,8 @@ function ProfileViewer() {
         .then((userProfile) => {
           newAvatar =
             userProfile.avatar_url &&
-            userProfile.avatar_url !== 'null' &&
-            userProfile.avatar_url !== null
+              userProfile.avatar_url !== 'null' &&
+              userProfile.avatar_url !== null
               ? mx.mxcUrlToHttp(userProfile.avatar_url)
               : null;
 
