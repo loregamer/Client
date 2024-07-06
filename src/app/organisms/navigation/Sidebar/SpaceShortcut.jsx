@@ -27,7 +27,7 @@ import { guessDMRoomTargetId } from '@src/client/action/room';
 import { getCustomAvatar } from '@src/util/libs/customUserSettings';
 
 // Draggable Space Shortcut
-function DraggableSpaceShortcut({ isActive, spaceId, isSpace, index, moveShortcut, onDrop }) {
+function DraggableSpaceShortcut({ isActive, spaceId, isSpace, index, moveShortcut }) {
   const mx = initMatrix.matrixClient;
   const { notifications } = initMatrix;
   const room = mx.getRoom(spaceId);
@@ -106,16 +106,22 @@ function DraggableSpaceShortcut({ isActive, spaceId, isSpace, index, moveShortcu
     ));
   };
 
+  const [{ isDragging }, drag] = useDrag({
+    type: 'PINNED_ITEM',
+    item: () => ({ id: spaceId, index, isSpace }),
+    collect: (monitor) => ({
+      isDragging: monitor.isDragging(),
+    }),
+    end: (item, monitor) => {
+      const dropResult = monitor.getDropResult();
+      if (item && dropResult) {
+        moveShortcut(item.index, dropResult.index);
+      }
+    },
+  });
+
   const [, drop] = useDrop({
     accept: 'PINNED_ITEM',
-    collect(monitor) {
-      return {
-        handlerId: monitor.getHandlerId(),
-      };
-    },
-    drop(item) {
-      onDrop(item.index, item.id);
-    },
     hover(item, monitor) {
       if (!shortcutRef.current) return;
 
@@ -131,17 +137,9 @@ function DraggableSpaceShortcut({ isActive, spaceId, isSpace, index, moveShortcu
       if (dragIndex < hoverIndex && hoverClientY < hoverMiddleY) return;
       if (dragIndex > hoverIndex && hoverClientY > hoverMiddleY) return;
 
-      moveShortcut(dragIndex, hoverIndex);
       item.index = hoverIndex;
     },
-  });
-
-  const [{ isDragging }, drag] = useDrag({
-    type: 'PINNED_ITEM',
-    item: () => ({ id: spaceId, index }),
-    collect: (monitor) => ({
-      isDragging: monitor.isDragging(),
-    }),
+    drop: () => ({ index }),
   });
 
   drag(avatarRef);
@@ -198,47 +196,32 @@ DraggableSpaceShortcut.propTypes = {
   isSpace: PropTypes.bool.isRequired,
   index: PropTypes.number.isRequired,
   moveShortcut: PropTypes.func.isRequired,
-  onDrop: PropTypes.func.isRequired,
 };
 
 export default function SpaceShortcut() {
   const mx = initMatrix.matrixClient;
   const [selectedTab] = useSelectedTab();
   useNotificationUpdate();
-  const [pinnedItems, setPinnedItems] = usePinnedItems();
+  const [pinnedItems, togglePinnedItem] = usePinnedItems();
 
   const moveShortcut = (dragIndex, hoverIndex) => {
-    const newPinnedItems = { ...pinnedItems };
-    const allItems = [...newPinnedItems.spaces, ...newPinnedItems.rooms];
+    const allItems = [...pinnedItems.spaces, ...pinnedItems.rooms];
     const [removed] = allItems.splice(dragIndex, 1);
     allItems.splice(hoverIndex, 0, removed);
 
-    newPinnedItems.spaces = allItems.filter(id => initMatrix.roomList.spaces.has(id));
-    newPinnedItems.rooms = allItems.filter(id => !initMatrix.roomList.spaces.has(id));
+    const newPinnedItems = {
+      spaces: allItems.filter(id => initMatrix.roomList.spaces.has(id)),
+      rooms: allItems.filter(id => !initMatrix.roomList.spaces.has(id))
+    };
 
-    setPinnedItems(newPinnedItems);
-    localStorage.setItem('pinned_items', JSON.stringify(newPinnedItems));
-  };
+    // Unpin all items
+    [...pinnedItems.spaces, ...pinnedItems.rooms].forEach(itemId => {
+      togglePinnedItem(itemId, initMatrix.roomList.spaces.has(itemId));
+    });
 
-  const handleDrop = (dragIndex, dragItemId) => {
-    const newPinnedItems = { ...pinnedItems };
-    const allItems = [...newPinnedItems.spaces, ...newPinnedItems.rooms];
-    const draggedItem = allItems[dragIndex];
-
-    if (!draggedItem) return;
-
-    const isSpace = initMatrix.roomList.spaces.has(draggedItem);
-    const type = isSpace ? 'spaces' : 'rooms';
-
-    newPinnedItems[type] = newPinnedItems[type].filter(id => id !== dragItemId);
-    allItems.splice(dragIndex, 1);
-    allItems.splice(dragIndex, 0, dragItemId);
-
-    newPinnedItems.spaces = allItems.filter(id => initMatrix.roomList.spaces.has(id));
-    newPinnedItems.rooms = allItems.filter(id => !initMatrix.roomList.spaces.has(id));
-
-    setPinnedItems(newPinnedItems);
-    localStorage.setItem('pinned_items', JSON.stringify(newPinnedItems));
+    // Re-pin items in the new order
+    newPinnedItems.spaces.forEach(spaceId => togglePinnedItem(spaceId, true));
+    newPinnedItems.rooms.forEach(roomId => togglePinnedItem(roomId, false));
   };
 
   const allPinnedItems = [
@@ -256,7 +239,6 @@ export default function SpaceShortcut() {
           isSpace={item.isSpace}
           isActive={selectedTab === item.id}
           moveShortcut={moveShortcut}
-          onDrop={handleDrop}
         />
       ))}
     </DndProvider>
