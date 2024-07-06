@@ -31,7 +31,6 @@
   --sky: sky;
   --lavender: lavender;
   --subtext0: gray;
-  --hq-red: #d3103f;
 }
 
 /* Silver Theme */
@@ -207,7 +206,7 @@
   --bg-primary-border: fadeout(--accentColor, 62%);
 
   --bg-tooltip: var(--surface0);
-  --bg-badge: var(--hq-red);
+  --bg-badge: var(--lavender);
 
   --bg-positive: var(--green);
   --bg-positive-hover: fadeout(--green, 92%);
