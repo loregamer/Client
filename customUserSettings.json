@@ -24,6 +24,18 @@
     },
     "@irc_Kalarion:rpghq.org": {
       "profilePicture": "https://rpghq.org/forums/download/file.php?avatar=71.png"
+    },
+    "@oystersauce:rpghq.org": {
+      "chatColor": "#00AA00"
+    },
+    "@irc_wraith:rpghq.org": {
+      "chatColor": "#00AA00"
+    },
+    "@irc_Ganondorf:rpghq.org": {
+      "chatColor": "#00AA00"
+    },
+    "@irc_rusty_mobile:rpghq.org": {
+      "chatColor": "#ff6e6e"
     }
   }
 }
