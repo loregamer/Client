@@ -1,5 +1,7 @@
 import { EventTimeline } from 'matrix-js-sdk';
 import initMatrix, { fetchFn } from '../client/initMatrix';
+import { colorMXID } from './colorMXID';
+import { getCustomUserSetting } from './libs/customUserSettings';
 
 const HashIC = './img/ic/outlined/hash.svg';
 const HashGlobeIC = './img/ic/outlined/hash-globe.svg';
@@ -63,16 +65,28 @@ export function getUsername(userId) {
   if (typeof username === 'undefined') {
     username = userId;
   }
-  return username;
+  const customUsername = getCustomUserSetting(userId, 'username');
+  return customUsername || username;
 }
 
 export function getUsernameOfRoomMember(member) {
   if (!member) return 'Unknown';
   const name = member.name || member.userId;
-  if (member.userId.includes('irc_') && !name.includes('[irc]')) {
-    return `${name} [irc]`;
+  const customName = getCustomUserSetting(member.userId, 'username');
+  const displayName = customName || name;
+  if (member.userId.includes('irc_') && !displayName.includes('[irc]')) {
+    return `${displayName} [irc]`;
   }
-  return name;
+  return displayName;
+}
+
+export function getUserColor(userId) {
+  const customColor = getCustomUserSetting(userId, 'chatColor');
+  return customColor || '#FFFFFF'; // Default to white if no custom color is set
+}
+
+export function getUserIcon(userId) {
+  return getCustomUserSetting(userId, 'profilePicture');
 }
 
 export async function isRoomAliasAvailable(alias) {

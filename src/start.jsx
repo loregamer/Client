@@ -13,6 +13,7 @@ import App from './app/pages/App';
 import { getOsSettings } from './util/libs/osSettings';
 import ChatRoom from './app/embed/ChatRoom';
 import urlParams from './util/libs/urlParams';
+import { fetchCustomUserSettings } from './util/libs/customUserSettings';
 
 global.Buffer = Buffer;
 // global.Buffer = global.Buffer || Buffer;
@@ -28,6 +29,9 @@ function StartApp(appProtocol) {
 
   getPWADisplayMode();
   startQuery();
+
+  // Initialize custom user settings
+  fetchCustomUserSettings();
 
   const root = ReactDOM.createRoot(document.getElementById('root'));
 
