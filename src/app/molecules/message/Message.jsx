@@ -281,27 +281,16 @@ const MessageReplyWrapper = React.memo(({ roomTimeline, eventId }) => {
     return () => {
       isMountedRef.current = false;
     };
-  }, [eventId, roomTimeline]);
+  }, [roomTimeline, eventId]);
 
-  const focusReply = (ev) => {
-    if (!ev.key || ev.key === ' ' || ev.key === 'Enter') {
-      if (ev.key) ev.preventDefault();
-      if (reply?.event === null) return;
-      if (reply?.event.isRedacted()) return;
-      roomTimeline.loadEventTimeline(eventId);
-    }
-  };
+  if (!reply) return null;
 
   return (
-    <div
-      className="message__reply-wrapper"
-      onClick={focusReply}
-      onKeyDown={focusReply}
-      role="button"
-      tabIndex={0}
-    >
-      {reply !== null && <MessageReply name={reply.to} color={reply.color} body={reply.body} />}
-    </div>
+    <MessageReply
+      name={reply.to}
+      color={reply.color}
+      body={reply.body}
+    />
   );
 });
 
@@ -1711,9 +1700,12 @@ function Message({
     : false;
   const eventRelation = mEvent.getRelation();
 
+  console.log("forced parseReply", parseReply(body));
+
   // Is Reply
   const isReply =
-    !!mEvent.replyEventId &&
+    !!mEvent.replyEventId ||
+    parseReply(body) !== null &&
     // don't render thread fallback replies
     !(eventRelation?.rel_type === THREAD_RELATION_TYPE.name && eventRelation?.is_falling_back);
 
@@ -1726,8 +1718,11 @@ function Message({
 
   // Is Reply
   if (isReply) {
-    body = parseReply(body)?.body ?? body;
-    customHTML = trimHTMLReply(customHTML);
+    const parsedReply = parseReply(body);
+    if (parsedReply) {
+      body = parsedReply.body;
+      customHTML = trimHTMLReply(customHTML);
+    }
   }
 
   // Fix Body String

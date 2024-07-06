@@ -109,24 +109,44 @@ export function getPowerLabel(powerLevel) {
 }
 
 export function parseReply(rawBody) {
-  if (rawBody?.indexOf('>') !== 0) return null;
-  let body = rawBody.slice(rawBody.indexOf('<') + 1);
-  const user = body.slice(0, body.indexOf('>'));
+  console.log('parseReply input:', rawBody);
 
-  body = body.slice(body.indexOf('>') + 2);
-  const replyBody = body.slice(0, body.indexOf('\n\n'));
-  body = body.slice(body.indexOf('\n\n') + 2);
+  if (!rawBody || typeof rawBody !== 'string') {
+    console.log('parseReply output: null (invalid input)');
+    return null;
+  }
 
-  if (user === '') return null;
+  // New Matrix reply format
+  const newFormatMatch = rawBody.match(/^> <([^>]+)> ([\s\S]+?)\n\n([\s\S]+)$/);
+  if (newFormatMatch) {
+    const [, userId, replyBody, body] = newFormatMatch;
+    const result = {
+      userId,
+      displayName: null,
+      replyBody: replyBody.trim(),
+      body: body.trim(),
+    };
+    console.log('parseReply output:', result);
+    return result;
+  }
 
-  const isUserId = user.match(/^@.+:.+/);
+  // Deprecated format
+  const deprecatedMatch = rawBody.match(/^<([^>]+)> (.+?)(?:\s*<\s*(.+))?$/);
+  if (deprecatedMatch) {
+    const [, userPart, replyBody, body] = deprecatedMatch;
+    const isUserId = userPart.includes(':');
+    const result = {
+      userId: isUserId ? userPart : null,
+      displayName: isUserId ? null : userPart,
+      replyBody: replyBody.trim(),
+      body: (body || '').trim(),
+    };
+    console.log('parseReply output:', result);
+    return result;
+  }
 
-  return {
-    userId: isUserId ? user : null,
-    displayName: isUserId ? null : user,
-    replyBody,
-    body,
-  };
+  console.log('parseReply output: null (not a reply format)');
+  return null;
 }
 
 export function trimHTMLReply(html) {
