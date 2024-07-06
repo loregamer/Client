@@ -69,15 +69,8 @@ export function getUsername(userId) {
   return customUsername || username;
 }
 
-export function getUsernameOfRoomMember(member) {
-  if (!member) return 'Unknown';
-  const name = member.name || member.userId;
-  const customName = getCustomUserSetting(member.userId, 'username');
-  const displayName = customName || name;
-  if (member.userId.includes('irc_') && !displayName.includes('[irc]')) {
-    return `${displayName} [irc]`;
-  }
-  return displayName;
+export function getUsernameOfRoomMember(roomMember) {
+  return roomMember.name || roomMember.userId;
 }
 
 export function getUserColor(userId) {
