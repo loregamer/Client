@@ -19,7 +19,7 @@
 
   --bg-input: #222;
 
-  --bg-surface: hsl(0, 2%, 11%);
+  --bg-surface: #373943;
   --bg-surface-semi-transparent: rgba(29, 27, 27, 0.9);
   --bg-surface-gradient: linear-gradient(
     180deg,
@@ -28,14 +28,9 @@
     rgb(40, 40, 40) 100%
   );
 
-  --bg-surface-gradient-2: linear-gradient(
-    180deg,
-    rgba(27, 27, 27, 1) 0%,
-    rgba(27, 27, 27, 1) 20%,
-    rgb(40, 40, 50) 100%
-  );
+  --bg-surface-gradient-2: #292b32;
 
-  --bg-surface-gradient-3: linear-gradient(180deg, rgba(44, 44, 44, 1) 0%, rgb(50, 50, 60) 100%);
+  --bg-surface-gradient-3: #1e2025;
 
   --default-embed-color: #000;
 
@@ -260,5 +255,33 @@
     --bs-gradient: none;
   }
 
+  .sidebar-item-2 {
+    background: #191b1f;
+    margin-top: -60px;
+  }
+
+  .featured-container > .sidebar-avatar,
+  .featured-container > .avatar-container,
+  .space-container > .sidebar-avatar,
+  .space-container > .avatar-container,
+  .sticky-container > .sidebar-avatar,
+  .sticky-container > .avatar-container {
+    margin: calc(var(--sp-tight) / 3) 0;
+  }
+
+  .room-view .room-view__content-wrapper {
+    background: #373943;
+  }
+
   --bg-profile-banner: #1b1b1b;
+}
+
+#profile-sidebar {
+  position: relative;
+  top: -60px;
+  margin-left: 72px;
+  border-top: 1px solid #fff;
+  border-left-color: transparent !important;
+  border-left-width: 0px !important;
+  background: #191b1f;
 }
