@@ -19,6 +19,8 @@ import insertCustomStatus from '../people-selector/insertCustomStatus';
 import favIconManager from '../../../util/libs/favicon';
 import { getAppearance, getAnimatedImageUrl } from '../../../util/libs/appearance';
 import { selectRoom, selectRoomMode } from '../../../client/action/navigation';
+import { getCustomAvatar } from '../../../util/libs/customUserSettings';
+import { guessDMRoomTargetId } from '../../../client/action/room';
 
 function RoomSelectorWrapper({
   isSelected,
@@ -92,11 +94,20 @@ function RoomSelector({
 
   const mx = initMatrix.matrixClient;
 
-  if (user && !userData) {
-    const content = getPresence(user);
-    setPresenceStatus(content);
-    setTimeout(() => insertCustomStatus(customStatusRef, content), 10);
-  }
+  useEffect(() => {
+    if (user) {
+      const content = getPresence(user);
+      setPresenceStatus(content);
+      setTimeout(() => insertCustomStatus(customStatusRef, content), 10);
+
+      // Add custom avatar check
+      const customAvatarSrc = getCustomAvatar(user.userId);
+      if (customAvatarSrc) {
+        setImgSrc(customAvatarSrc);
+        setImgAnimSrc(customAvatarSrc);
+      }
+    }
+  }, [user]);
 
   const existStatus =
     objType(userData, 'object') &&
@@ -123,7 +134,7 @@ function RoomSelector({
           tinyUser && tinyUser.avatarUrl
             ? mx.mxcUrlToHttp(tinyUser.avatarUrl, 32, 32, 'crop')
             : (room && room.getAvatarFallbackMember()?.getAvatarUrl(mx.baseUrl, 32, 32, 'crop')) ||
-              null;
+            null;
         if (room && newImageSrc === null)
           newImageSrc = room.getAvatarUrl(mx.baseUrl, 32, 32, 'crop') || null;
         setImgSrc(newImageSrc);
@@ -132,10 +143,10 @@ function RoomSelector({
           tinyUser && tinyUser.avatarUrl
             ? mx.mxcUrlToHttp(tinyUser.avatarUrl)
             : (room && !appearanceSettings.enableAnimParams
-                ? room.getAvatarFallbackMember()?.getAvatarUrl(mx.baseUrl)
-                : getAnimatedImageUrl(
-                    room.getAvatarFallbackMember()?.getAvatarUrl(mx.baseUrl, 32, 32, 'crop'),
-                  )) || null;
+              ? room.getAvatarFallbackMember()?.getAvatarUrl(mx.baseUrl)
+              : getAnimatedImageUrl(
+                room.getAvatarFallbackMember()?.getAvatarUrl(mx.baseUrl, 32, 32, 'crop'),
+              )) || null;
 
         if (room && newImageAnimSrc === null)
           newImageAnimSrc = !appearanceSettings.enableAnimParams
