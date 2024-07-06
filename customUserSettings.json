@@ -15,6 +15,15 @@
     "@vergil:rpghq.org": {
       "chatColor": "#9426be",
       "profilePicture": "https://www.colorado.edu/cisc/sites/default/files/styles/large_square_thumbnail/public/callout/original.png"
+    },
+    "@irc_madbringer:rpghq.org": {
+      "profilePicture": "https://rpghq.org/forums/download/file.php?avatar=230.jpg"
+    },
+    "@studiedasleep:rpghq.org": {
+      "profilePicture": "https://rpghq.org/forums/images/avatars/gallery/Baldurs%20Gate%20Anime/ALORAL.png"
+    },
+    "@irc_Kalarion:rpghq.org": {
+      "profilePicture": "https://rpghq.org/forums/download/file.php?avatar=71.png"
     }
   }
 }
