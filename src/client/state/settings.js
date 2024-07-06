@@ -17,6 +17,7 @@ import butterTheme from '../../scss/theme/butter';
 import darkTheme from '../../scss/theme/dark';
 import silverTheme from '../../scss/theme/silver';
 import whiteTheme from '../../scss/theme/white';
+import guildedTheme from '../../scss/theme/guilded';
 
 const themes = {
   black: { data: blackTheme, id: 'black-theme', type: 'dark-solid', coloredIcons: false },
@@ -58,6 +59,7 @@ const themes = {
     type: 'light-solid',
     coloredIcons: false,
   },
+  guilded: { data: guildedTheme, id: 'guilded-theme', type: '', coloredIcons: false },
 };
 
 function getSettings() {
@@ -87,6 +89,7 @@ class Settings extends EventEmitter {
       themes.butter_no_gradient,
       themes.black,
       themes.black_colors,
+      themes.guilded, // Add the Guilded theme here
     ];
 
     this.themesName = [
@@ -100,6 +103,7 @@ class Settings extends EventEmitter {
       { text: 'Butter (No Gradients)' },
       { text: 'Black (Beta)' },
       { text: 'Black Colors (Beta)' },
+      { text: 'Guilded' }, // Add the Guilded theme name here
     ];
 
     this.defaultSystemThemeType = {
