@@ -4,6 +4,10 @@
       "chatColor": "#ff6e6e",
       "profilePicture": "https://rpghq.org/forums/download/file.php?avatar=58.png"
     },
+    "@irc_rusty_mobile:rpghq.org": {
+      "chatColor": "#ff6e6e",
+      "profilePicture": "https://rpghq.org/forums/download/file.php?avatar=58.png"
+    },
     "@loregamer:rpghq.org": {
       "chatColor": "#D02D2A",
       "profilePicture": "https://rpghq.org/forums/download/file.php?avatar=551.png"
@@ -12,29 +16,84 @@
       "chatColor": "#00AA00",
       "profilePicture": "https://rpghq.org/forums/download/file.php?avatar=63.png"
     },
-    "@vergil:rpghq.org": {
-      "chatColor": "#9426be"
-    },
-    "@irc_madbringer:rpghq.org": {
-      "profilePicture": "https://rpghq.org/forums/download/file.php?avatar=230.jpg"
-    },
-    "@studiedasleep:rpghq.org": {
-      "profilePicture": "https://rpghq.org/forums/images/avatars/gallery/Baldurs%20Gate%20Anime/ALORAL.png"
-    },
-    "@irc_Kalarion:rpghq.org": {
-      "profilePicture": "https://rpghq.org/forums/download/file.php?avatar=71.png"
+    "@irc_wraith:rpghq.org": {
+      "chatColor": "#00AA00",
+      "profilePicture": "https://rpghq.org/forums/download/file.php?avatar=62.jpg"
     },
     "@oystersauce:rpghq.org": {
       "chatColor": "#00AA00"
     },
-    "@irc_wraith:rpghq.org": {
-      "chatColor": "#00AA00"
+    "@loregamer:rpghq.org": {
+      "chatColor": "#D22D2B"
     },
-    "@irc_Ganondorf:rpghq.org": {
-      "chatColor": "#00AA00"
+    "@irc_Gregz:rpghq.org": {
+      "profilePicture": "https://rpghq.org/forums/download/file.php?avatar=87.jpg"
     },
-    "@irc_rusty_mobile:rpghq.org": {
-      "chatColor": "#ff6e6e"
+    "@irc_Kalarion:rpghq.org": {
+      "profilePicture": "https://rpghq.org/forums/download/file.php?avatar=71.png"
+    },
+    "@irc_Kalarion1:rpghq.org": {
+      "profilePicture": "https://rpghq.org/forums/download/file.php?avatar=71.png"
+    },
+    "@irc_Kalarion7:rpghq.org": {
+      "profilePicture": "https://rpghq.org/forums/download/file.php?avatar=71.png"
+    },
+    "@irc_Kalarionis:rpghq.org": {
+      "profilePicture": "https://rpghq.org/forums/download/file.php?avatar=71.png"
+    },
+    "@irc_Tweed:rpghq.org": {
+      "profilePicture": "https://rpghq.org/forums/download/file.php?avatar=68.png"
+    },
+    "@irc_Tweedagain:rpghq.org": {
+      "profilePicture": "https://rpghq.org/forums/download/file.php?avatar=68.png"
+    },
+    "@irc_decline:rpghq.org": {
+      "profilePicture": "https://rpghq.org/forums/download/file.php?avatar=225.png"
+    },
+    "@irc_Sex_Cult_Leader:rpghq.org": {
+      "profilePicture": "https://rpghq.org/forums/download/file.php?avatar=65.gif"
+    },
+    "@irc_stackofturtles:rpghq.org": {
+      "profilePicture": "https://rpghq.org/forums/download/file.php?avatar=3301.png"
+    },
+    "@irc_twig:rpghq.org": {
+      "profilePicture": "https://rpghq.org/forums/download/file.php?avatar=2.png"
+    },
+    "@irc_Roguey:rpghq.org": {
+      "profilePicture": "https://rpghq.org/forums/download/file.php?avatar=86.png"
+    },
+    "@irc_Chonkem:rpghq.org": {
+      "profilePicture": "https://rpghq.org/forums/download/file.php?avatar=69.jpg"
+    },
+    "@irc_herkzter:rpghq.org": {
+      "profilePicture": "https://rpghq.org/forums/download/file.php?avatar=289.png"
+    },
+    "@irc_The_Mask:rpghq.org": {
+      "profilePicture": "https://rpghq.org/forums/download/file.php?avatar=113.jpg"
+    },
+    "@irc_Eyestabber:rpghq.org": {
+      "profilePicture": "https://rpghq.org/forums/download/file.php?avatar=85.png"
+    },
+    "@irc_Irenaeus:rpghq.org": {
+      "profilePicture": "https://rpghq.org/forums/images/avatars/gallery/ambermoon/010.png"
+    },
+    "@irc_gerey:rpghq.org": {
+      "profilePicture": "https://rpghq.org/forums/download/file.php?avatar=64.jpg"
+    },
+    "@irc_asf:rpghq.org": {
+      "profilePicture": "https://rpghq.org/forums/download/file.php?avatar=72.png"
+    },
+    "@irc_Nemain:rpghq.org": {
+      "profilePicture": "https://rpghq.org/forums/download/file.php?avatar=3398.jpg"
+    },
+    "@irc_wunderbar:rpghq.org": {
+      "profilePicture": "https://rpghq.org/forums/download/file.php?avatar=90.png"
+    },
+    "@studiedasleep:rpghq.org": {
+      "profilePicture": "https://rpghq.org/forums/images/avatars/gallery/Baldurs%20Gate%20Anime/ALORAL.png"
+    },
+    "@irc_madbringer:rpghq.org": {
+      "profilePicture": "https://rpghq.org/forums/download/file.php?avatar=230.jpg"
     }
   }
 }
