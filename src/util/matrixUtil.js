@@ -102,10 +102,7 @@ export function getPowerLabel(powerLevel) {
 }
 
 export function parseReply(rawBody) {
-  console.log('parseReply input:', rawBody);
-
   if (!rawBody || typeof rawBody !== 'string') {
-    console.log('parseReply output: null (invalid input)');
     return null;
   }
 
@@ -120,7 +117,6 @@ export function parseReply(rawBody) {
       body: body.trim(),
       isDeprecatedFormat: false,
     };
-    console.log('parseReply output:', result);
     return result;
   }
 

@@ -232,6 +232,7 @@ MessageReply.propTypes = {
 const MessageReplyWrapper = React.memo(({ roomTimeline, eventId }) => {
   const [reply, setReply] = useState(null);
   const isMountedRef = useRef(true);
+  const [isHighlighted, setIsHighlighted] = useState(false);
 
   useEffect(() => {
     const mx = initMatrix.matrixClient;
@@ -289,9 +290,12 @@ const MessageReplyWrapper = React.memo(({ roomTimeline, eventId }) => {
       if (reply?.event === null) return;
       if (reply?.event.isRedacted()) return;
       roomTimeline.loadEventTimeline(eventId);
+      setIsHighlighted(true);
+      setTimeout(() => {
+        setIsHighlighted(false);
+      }, 1000); // Highlight for 1 second
     }
   };
-
   return (
     <div
       className="message__reply-wrapper"
