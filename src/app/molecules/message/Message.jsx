@@ -1728,9 +1728,9 @@ function Message({
   // Is Reply
   const isReply =
     !!mEvent.replyEventId ||
-    parsedReply !== null &&
-    // don't render thread fallback replies
-    !(eventRelation?.rel_type === THREAD_RELATION_TYPE.name && eventRelation?.is_falling_back);
+    (parsedReply !== null &&
+      // don't render thread fallback replies
+      !(eventRelation?.rel_type === THREAD_RELATION_TYPE.name && eventRelation?.is_falling_back));
 
   // Is Edit
   if (isEdited) {
@@ -1741,7 +1741,9 @@ function Message({
 
   // Is Reply
   if (isReply) {
-    body = parsedReply.body;
+    if (parsedReply && parsedReply.body) {
+      body = parsedReply.body;
+    }
     isDeprecatedFormat ? customHTML = null : customHTML = trimHTMLReply(customHTML);
   }
 
