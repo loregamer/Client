@@ -281,16 +281,27 @@ const MessageReplyWrapper = React.memo(({ roomTimeline, eventId }) => {
     return () => {
       isMountedRef.current = false;
     };
-  }, [roomTimeline, eventId]);
+  }, [eventId, roomTimeline]);
 
-  if (!reply) return null;
+  const focusReply = (ev) => {
+    if (!ev.key || ev.key === ' ' || ev.key === 'Enter') {
+      if (ev.key) ev.preventDefault();
+      if (reply?.event === null) return;
+      if (reply?.event.isRedacted()) return;
+      roomTimeline.loadEventTimeline(eventId);
+    }
+  };
 
   return (
-    <MessageReply
-      name={reply.to}
-      color={reply.color}
-      body={reply.body}
-    />
+    <div
+      className="message__reply-wrapper"
+      onClick={focusReply}
+      onKeyDown={focusReply}
+      role="button"
+      tabIndex={0}
+    >
+      {reply !== null && <MessageReply name={reply.to} color={reply.color} body={reply.body} />}
+    </div>
   );
 });
 
