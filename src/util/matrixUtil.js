@@ -129,7 +129,6 @@ export function parseReply(rawBody) {
   if (deprecatedMatch) {
     const [, userPart, replyBody, body] = deprecatedMatch;
     const isUserId = userPart.includes(':');
-    console.log('userPart: ', userPart, ' >> ', getUsername(userPart));
     const result = {
       userId: isUserId ? userPart : getUsernameOfRoomMember(userPart),
       displayName: userPart,
@@ -137,11 +136,9 @@ export function parseReply(rawBody) {
       body: (body || '').trim(),
       isDeprecatedFormat: true,
     };
-    console.log('parseReply output:', result);
     return result;
   }
 
-  console.log('parseReply output: null (not a reply format)');
   return null;
 }
 
